@@ -168,13 +168,38 @@ pre code {
 </div>
 
 
+<pre class="r"><code>knitr::opts_chunk$set(error = TRUE)</code></pre>
 <div id="strings" class="section level2">
 <h2>14 Strings</h2>
 <div id="tổng-quan" class="section level3">
 <h3>14.1 Tổng quan</h3>
 <p>Chapter này hướng dẫn cách sử dụng string trong R, học về “regular expressions” (regexps).</p>
-<p>Trước tiên phải load tidyverse library</p>
+<p>Đầu tiên phải load tidyverse library</p>
 <pre class="r"><code>library(tidyverse)</code></pre>
+</div>
+<div id="strings-basics" class="section level3">
+<h3>14.2 Strings basics</h3>
+<p>Tạo string bnằng cách sử dụng dấu ngoặc kép ” ” hoặc giữa 2 dấu nháy đơn ’ ’</p>
+<pre class="r"><code>string1 &lt;- &quot;This is a string&quot;
+string2 &lt;- &#39;If I want to include a &quot;quote&quot; inside a string, I use single quote &#39;</code></pre>
+<p>-&gt; Dùng dấu nháy đơn nếu trong string đã có dấu ngoặc képs</p>
+<pre class="r"><code>&quot;This is a string without a closing quote
++
++
++</code></pre>
+<pre><code>## Error: &lt;text&gt;:1:1: unexpected INCOMPLETE_STRING
+## 3: +
+## 4: +
+##    ^</code></pre>
+<p>Dùng Espace để thoát ra nếu lỡ tay chạy string mà chưa đóng ngoặc</p>
+<p>Cách sử dụng ngoặc kép trong một string</p>
+<pre class="r"><code>double_quote &lt;- &quot;\&quot;&quot;
+single_quote &lt;- &#39;\&#39;&#39;
+print(double_quote)</code></pre>
+<pre><code>## [1] &quot;\&quot;&quot;</code></pre>
+<pre class="r"><code>print(single_quote)</code></pre>
+<pre><code>## [1] &quot;&#39;&quot;</code></pre>
+<p>Vậy nếu muốn sử dụng dấu \, phải gõ “\\”</p>
 </div>
 </div>
 

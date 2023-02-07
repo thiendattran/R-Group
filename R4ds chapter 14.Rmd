@@ -5,16 +5,49 @@ date: "2/7/2023"
 output: html_document
 ---
 
+```{r, incluse = FALSE}
+knitr::opts_chunk$set(error = TRUE)
+```
+
 ## 14 Strings
 
 ### 14.1 Tổng quan
 
 Chapter này hướng dẫn cách sử dụng string trong R, học về "regular expressions" (regexps).
 
-Trước tiên phải load tidyverse library
+Đầu tiên phải load tidyverse library
 
 ```{r setup, message = FALSE}
 library(tidyverse)
 ```
 
-sad
+### 14.2 Strings basics
+
+Tạo string bnằng cách sử dụng dấu ngoặc kép " " hoặc giữa 2 dấu nháy đơn ' '
+
+```{r}
+string1 <- "This is a string"
+string2 <- 'If I want to include a "quote" inside a string, I use single quote '
+```
+
+-> Dùng dấu nháy đơn nếu trong string đã có dấu ngoặc képs
+
+```{r}
+"This is a string without a closing quote
++
++
++
+```
+
+Dùng Espace để thoát ra nếu lỡ tay chạy string mà chưa đóng ngoặc
+
+Cách sử dụng ngoặc kép trong một string
+
+```{r}
+double_quote <- "\""
+single_quote <- '\''
+print(double_quote)
+print(single_quote)
+```
+
+Vậy nếu muốn sử dụng dấu \\, phải gõ "\\\\"
