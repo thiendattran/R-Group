@@ -1,0 +1,315 @@
+---
+title: "FACTORS"
+author: "LUONG PHAM THAO VAN"
+date: "2023-02-12"
+output: html_document
+---
+
+# Introduction
+
+Factors are used to work with categorical variables
+
+# Pratice
+
+```{r}
+library(tidyverse)
+```
+
+a string is sorted by anaphabet
+
+```{r}
+x1 <- c("Dec","Apr","Jan","Mar")
+sort(x1)
+```
+
+a string is sorted by month
+
+```{r}
+month_levels <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+
+y1<- factor(x1, levels=month_levels)
+y1
+sort(y1)
+```
+
+```{r}
+x2 <- c("Apr","Jam","aug","Nov")
+sort(x2)
+
+y2 <- factor(x2,levels=month_levels)
+y2
+
+```
+
+warning
+
+```{r}
+parse_factor(x2,levels=month_levels)
+```
+
+alphabetical order in a factor
+
+```{r}
+factor(x1)
+```
+
+keep the order of the first appearance in the data
+
+```{r}
+factor(x1, levels= unique(x1))
+```
+
+or
+
+```{r}
+f2 <- x1 %>% factor() %>% fct_inorder()
+f2
+```
+
+access the set of valid levels directly
+
+```{r}
+levels(f2)
+```
+
+```{r}
+gss_cat
+```
+
+load data (gss_cat: general social survey)
+
+```{r}
+gss_cat %>% select(partyid, relig,denom)
+```
+
+```{r}
+?gss_cat
+```
+
+```{r}
+gss_cat %>% count(race)
+```
+
+```{r}
+gss_cat %>% ggplot(aes(race))+
+  geom_bar()
+```
+
+ggplot() sẽ không vẽ những modalite ko có giá trị (mặc định) -\> drop = FALSE để hiện tất cả modalité lên biểu đồ
+
+```{r}
+levels(gss_cat$race)
+```
+
+```{r}
+ggplot(gss_cat,aes(race))+
+  geom_bar()+
+  scale_x_discrete(drop=FALSE)
+```
+
+```{r}
+gss_cat %>% select(rincome)
+```
+
+```{r}
+gss_cat %>% ggplot(aes(rincome))+
+  geom_bar()
+
+```
+
+```{r}
+gss_cat %>% count(relig)
+```
+
+```{r}
+relig_summary <- gss_cat %>%
+  group_by(relig) %>%
+  summarise(
+    age = mean(age, na.rm = TRUE),
+    tvhours = mean(tvhours, na.rm = TRUE),
+    n = n()
+  )
+
+ggplot(relig_summary, aes(tvhours, relig)) + geom_point()
+```
+
+```{r}
+gss_cat %>% group_by(denom,relig) %>% 
+  summarise(n=n())
+```
+
+```{r}
+ggplot(relig_summary, aes(tvhours, fct_reorder(relig, tvhours))) +
+  geom_point()
+```
+
+```{r}
+x2 = tibble(
+  n= c(1,2,5,3,0),
+  alb= c("b","c","a","e","d"))
+x2
+x2 %>% ggplot(aes(n,fct_reorder(alb,n)))+ geom_point()
+```
+
+```{r}
+relig_summary %>%
+  mutate(relig = fct_reorder(relig, tvhours)) %>%
+  ggplot(aes(tvhours, relig)) +
+    geom_point()
+```
+
+
+
+```{r}
+age_summary <- gss_cat %>% group_by(rincome) %>% 
+  summarise(age=mean(age, na.rm=TRUE),
+            n=n())
+ggplot(age_summary,aes(age,fct_reorder(rincome,age)))+ geom_point()
+```
+
+```{r}
+levels(gss_cat$rincome)
+```
+
+
+```{r}
+ggplot(age_summary, aes(age, fct_relevel(rincome, "Not applicable"))) +
+  geom_point()
+```
+
+
+
+```{r}
+f <- factor(c("a", "b", "c", "d"), levels = c("b", "c", "d", "a"))
+f
+fct_relevel(f)
+fct_relevel(f, "a")
+fct_relevel(f, "b", "a")
+```
+ Move to the third position
+```{r}
+fct_relevel(f, "a", after = 2)
+```
+ Relevel to the end
+```{r}
+fct_relevel(f, "a", after = Inf)
+```
+```{r}
+fct_relevel(f, sort)
+```
+ changer l'ordre de 'levels'
+```{r}
+x = c("van","thu","vi")
+x= factor(x)
+
+levels(x) <- c("vi","van","thu")
+levels(x)
+```
+ pardéfaut, fct_reorder2() utilise function last2 (trier les valeurs de 'prop' à la dernière groupe d'âge(89 ans)
+ first2: trier les valeurs de 'prop' à la première groupe d'âge(18 ans)
+ labs() = labels
+```{r}
+by_age <- gss_cat %>%
+  filter(!is.na(age)) %>%
+  count(age, marital) %>%
+  group_by(age) %>%
+  mutate(prop = n / sum(n))
+
+ggplot(by_age, aes(age, prop, colour = marital)) +
+  geom_line(na.rm = TRUE)
+
+ggplot(by_age, aes(age, prop, colour = fct_reorder2(marital, age, prop))) +
+  geom_line() +
+  labs(colour = "marital")
+
+ggplot(by_age, aes(age, prop, colour = fct_reorder2(marital, age, prop,.fun = first2))) +
+  geom_line() +
+  labs(colour = "marital")
+```
+
+fct_rev() renverse order of factor levels
+fct_infreq() reorder factor levels by frequency
+```{r}
+gss_cat %>% count(marital)
+gss_cat %>% ggplot(aes(marital))+
+  geom_bar()
+
+gss_cat %>%
+  mutate(marital = marital %>% fct_infreq() %>% fct_rev()) %>%
+  ggplot(aes(marital)) +
+    geom_bar()
+gss_cat %>%
+  mutate(marital = marital %>% fct_infreq()) %>%
+  ggplot(aes(marital)) +
+    geom_bar()
+```
+
+# recode levels
+```{r}
+levels(gss_cat$partyid)
+gss_cat %>%  count(partyid)
+gss_cat %>%
+  mutate(partyid = fct_recode(partyid,
+    "Republican, strong"    = "Strong republican",
+    "Republican, weak"      = "Not str republican",
+    "Independent, near rep" = "Ind,near rep",
+    "Independent, near dem" = "Ind,near dem",
+    "Democrat, weak"        = "Not str democrat",
+    "Democrat, strong"      = "Strong democrat"
+  )) %>%
+  count(partyid)
+```
+
+# combine groups : created group is "Other" with fct_recode() 
+```{r}
+gss_cat %>%
+  mutate(partyid = fct_recode(partyid,
+    "Republican, strong"    = "Strong republican",
+    "Republican, weak"      = "Not str republican",
+    "Independent, near rep" = "Ind,near rep",
+    "Independent, near dem" = "Ind,near dem",
+    "Democrat, weak"        = "Not str democrat",
+    "Democrat, strong"      = "Strong democrat",
+    "Other"                 = "No answer",
+    "Other"                 = "Don't know",
+    "Other"                 = "Other party"
+  )) %>%
+  count(partyid)
+```
+
+ combine group: created new group with fct_collapse() grouper plusieurs levels en même ligne
+```{r}
+gss_cat %>%
+  mutate(partyid = fct_collapse(partyid,
+    other = c("No answer", "Don't know", "Other party"),
+    rep = c("Strong republican", "Not str republican"),
+    ind = c("Ind,near rep", "Independent", "Ind,near dem"),
+    dem = c("Not str democrat", "Strong democrat")
+  )) %>%
+  count(partyid)
+```
+
+ grouper tous les petites groupes dans un groupe qui est comparé à le plus grand groupe (other et protestant)
+```{r}
+gss_cat %>% count(relig)
+gss_cat %>%
+  mutate(relig = fct_lump(relig)) %>%
+  count(relig)
+```
+
+ fct_lump with required number of group
+```{r}
+gss_cat %>%
+  mutate(relig = fct_lump(relig, n = 10)) %>%
+  count(relig, sort = TRUE) %>%
+  print(n = Inf)
+```
+
+
+
+
+
+
+
+
+
