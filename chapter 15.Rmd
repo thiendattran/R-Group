@@ -12,6 +12,9 @@ Factors are used to work with categorical variables
 # Các function sử dụng trong trong chapter
 sort(): sắp xếp dữ liệu trong array
 factor(): gắn levels cho variables 
+fct_lump()
+fct_collapse()
+fct_infreq()
 
 # Pratice
 
