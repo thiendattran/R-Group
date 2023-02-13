@@ -175,7 +175,7 @@ pre code {
 <h3>14.1 Tổng quan</h3>
 <p>Chapter này hướng dẫn cách sử dụng string trong R, học về “regular expressions” (regexps).</p>
 <p>Đầu tiên phải load tidyverse library</p>
-<pre class="r"><code>library(tidyverse)</code></pre>
+<pre class="r"><code>library(tidyverse) #load data tidyver</code></pre>
 </div>
 <div id="strings-basics" class="section level3">
 <h3>14.2 Strings basics</h3>
@@ -200,6 +200,224 @@ print(double_quote)</code></pre>
 <pre class="r"><code>print(single_quote)</code></pre>
 <pre><code>## [1] &quot;&#39;&quot;</code></pre>
 <p>Vậy nếu muốn sử dụng dấu \, phải gõ “\\”</p>
+<pre class="r"><code>print(&quot;\\&quot;)</code></pre>
+<pre><code>## [1] &quot;\\&quot;</code></pre>
+<pre class="r"><code>writeLines(&quot;\\&quot;)</code></pre>
+<pre><code>## \</code></pre>
+<p>Để xem raw content phải dùng writeLines chứ không phải print</p>
+</div>
+<div id="các-kí-tự-đặc-biệt" class="section level3">
+<h3>Các kí tự đặc biệt</h3>
+<pre class="r"><code>x &lt;- &quot;\u00b5&quot;
+x</code></pre>
+<pre><code>## [1] &quot;µ&quot;</code></pre>
+</div>
+</div>
+<div id="độ-dài-của-string" class="section level2">
+<h2>Độ dài của string</h2>
+<p>Các function base của R khó nhớ -&gt; sử dụng function từ library stringr với tên function dễ sử dụng hơn</p>
+<pre class="r"><code>str_length(c(&quot;a&quot;, &quot;R for data science&quot;, NA))</code></pre>
+<pre><code>## [1]  1 18 NA</code></pre>
+<div id="cách-ghép-các-strings-lại" class="section level3">
+<h3>Cách ghép các strings lại</h3>
+<p>Dùng function str_c</p>
+<pre class="r"><code>str_c (&quot;x&quot;,&quot;y&quot;,&quot;z&quot;)</code></pre>
+<pre><code>## [1] &quot;xyz&quot;</code></pre>
+<p>Ghép strings lại với dấu nối</p>
+<pre class="r"><code>str_c(&quot;x&quot;, &quot;y&quot;, sep = &quot;, &quot;)</code></pre>
+<pre><code>## [1] &quot;x, y&quot;</code></pre>
+<p>Nhưng khi trong str có NA:</p>
+<pre class="r"><code>x &lt;- c(&quot;A123&quot;, NA)
+str_c(&quot;&lt;&quot;, x, &quot;&gt;&quot;)</code></pre>
+<pre><code>## [1] &quot;&lt;A123&gt;&quot; NA</code></pre>
+<pre class="r"><code>str_c(&quot;&lt;&quot;, str_replace_na(x), &quot;&gt;&quot;)</code></pre>
+<pre><code>## [1] &quot;&lt;A123&gt;&quot; &quot;&lt;NA&gt;&quot;</code></pre>
+<p>str_c là fuction cho vector</p>
+<pre class="r"><code>str_c(&quot;prefix-&quot;, c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;), &quot;-suffix&quot;)</code></pre>
+<pre><code>## [1] &quot;prefix-a-suffix&quot; &quot;prefix-b-suffix&quot; &quot;prefix-c-suffix&quot;</code></pre>
+<p>Object nào length = 0 sẽ bị mất trong str_c</p>
+<pre class="r"><code>name &lt;- &quot;Hadley&quot;
+time_of_day &lt;- &quot;morning&quot;
+birthday &lt;- FALSE
+
+str_c(
+  &quot;Good &quot;, time_of_day, &quot; &quot;, name, birthday, &quot; and HAPPY BIRTHDAY&quot;,
+  &quot;.&quot;
+)</code></pre>
+<pre><code>## [1] &quot;Good morning HadleyFALSE and HAPPY BIRTHDAY.&quot;</code></pre>
+<pre class="r"><code>str_c(
+  &quot;Good &quot;, time_of_day, &quot; &quot;, name,
+  if (birthday) &quot; and HAPPY BIRTHDAY&quot;,
+  &quot;.&quot;
+)</code></pre>
+<pre><code>## [1] &quot;Good morning Hadley.&quot;</code></pre>
+<div id="subsetting-strings" class="section level4">
+<h4>14.2.3 Subsetting strings</h4>
+<p>Dùng function str_sub() để tách strings ra. Function này sẽ sử dụng start and end để tách str ra the vị trí từng kí tự</p>
+<pre class="r"><code>x &lt;- c (&quot;Apple&quot;, &quot;Banana&quot;, &quot;Pear&quot;)
+str_sub(x, 1, 3)</code></pre>
+<pre><code>## [1] &quot;App&quot; &quot;Ban&quot; &quot;Pea&quot;</code></pre>
+<pre class="r"><code>str_sub(x, -3, -1)</code></pre>
+<pre><code>## [1] &quot;ple&quot; &quot;ana&quot; &quot;ear&quot;</code></pre>
+<p>str_sub() vẫn chạy nếu như string ngắn hơn position</p>
+<pre class="r"><code>str_sub(&quot;a&quot;, 1, 5)</code></pre>
+<pre><code>## [1] &quot;a&quot;</code></pre>
+<p>Đổi string viết hoa thành viết thường</p>
+<pre class="r"><code>str_to_lower(x)</code></pre>
+<pre><code>## [1] &quot;apple&quot;  &quot;banana&quot; &quot;pear&quot;</code></pre>
+<p>đổi thành viết hoa</p>
+<pre class="r"><code>str_to_upper(x)</code></pre>
+<pre><code>## [1] &quot;APPLE&quot;  &quot;BANANA&quot; &quot;PEAR&quot;</code></pre>
+<p>locale = “en”</p>
+<p>locale = “vie”</p>
+<p>locale = “fr”</p>
+<p>Xếp alphabet tuỳ theo ngôn ngữ bằng cách chọn locale</p>
+<pre class="r"><code>x &lt;- c(&quot;apple&quot;, &quot;eggplant&quot;, &quot;banana&quot;)
+
+str_sort(x, locale = &quot;en&quot;)  # English</code></pre>
+<pre><code>## [1] &quot;apple&quot;    &quot;banana&quot;   &quot;eggplant&quot;</code></pre>
+<pre class="r"><code>str_sort(x, locale = &quot;haw&quot;) # Hawaiian</code></pre>
+<pre><code>## [1] &quot;apple&quot;    &quot;eggplant&quot; &quot;banana&quot;</code></pre>
+<pre class="r"><code>str_sort(x, locale = &quot;vie&quot;)</code></pre>
+<pre><code>## [1] &quot;apple&quot;    &quot;banana&quot;   &quot;eggplant&quot;</code></pre>
+<p>function paste() và paste0() thường được sử dụng trong R base và không nằm trong package stringr</p>
+<pre class="r"><code>paste(&quot;foo&quot;, &quot;bar&quot;)</code></pre>
+<pre><code>## [1] &quot;foo bar&quot;</code></pre>
+<pre class="r"><code>paste0(&quot;foo&quot;,&quot;bar&quot;)</code></pre>
+<pre><code>## [1] &quot;foobar&quot;</code></pre>
+<p>paste0 tương đương với str_c</p>
+<pre class="r"><code>paste0(&quot;foo&quot;, &quot;bar&quot;)</code></pre>
+<pre><code>## [1] &quot;foobar&quot;</code></pre>
+<pre class="r"><code>str_c(&quot;foo&quot;, &quot;bar&quot;)</code></pre>
+<pre><code>## [1] &quot;foobar&quot;</code></pre>
+<p>Khác biệt của str_c với paste0 khi có missing values</p>
+<pre class="r"><code>str_c(&quot;foo&quot;, NA)</code></pre>
+<pre><code>## [1] NA</code></pre>
+<pre class="r"><code>paste(&quot;foo&quot;, NA)</code></pre>
+<pre><code>## [1] &quot;foo NA&quot;</code></pre>
+<pre class="r"><code>paste0(&quot;foo&quot;, NA)</code></pre>
+<pre><code>## [1] &quot;fooNA&quot;</code></pre>
+<p>str_wrap() để xuống dòng ở các string dài</p>
+<pre class="r"><code>str_wrap(&quot;Trời ơi cái hàng này dài quá trời&quot;) %&gt;% writeLines()</code></pre>
+<pre><code>## Trời ơi cái hàng này dài quá trời</code></pre>
+<pre class="r"><code>str_wrap(&quot;Trời ơi cái hàng này dài quá trời&quot;, width = 10) %&gt;% writeLines()</code></pre>
+<pre><code>## Trời ơi
+## cái hàng
+## này dài
+## quá trời</code></pre>
+</div>
+<div id="tìm-strings-tương-ứng-với-kí-tự" class="section level4">
+<h4>14.2.3 Tìm strings tương ứng với kí tự</h4>
+<pre class="r"><code>x &lt;- c(&quot;apple&quot;, &quot;banana&quot;, &quot;pear&quot;)
+str_view(x, &quot;an&quot;)</code></pre>
+<pre><code>## [2] │ b&lt;an&gt;&lt;an&gt;a</code></pre>
+<p>Dùng dấu . để thay thế các kí tự</p>
+<pre class="r"><code>str_view(x, &quot;.a&quot;)</code></pre>
+<pre><code>## [2] │ &lt;ba&gt;&lt;na&gt;&lt;na&gt;
+## [3] │ p&lt;ea&gt;r</code></pre>
+<p>Cách tìm kí tự .</p>
+<pre class="r"><code>str_view(c(&quot;abc&quot;, &quot;a.c&quot;, &quot;bef&quot;), &quot;a\\.c&quot;)</code></pre>
+<pre><code>## [2] │ &lt;a.c&gt;</code></pre>
+<p>cách viết dấu \</p>
+<pre class="r"><code>x &lt;- &quot;a\\b&quot;
+writeLines(x)</code></pre>
+<pre><code>## a\b</code></pre>
+<p>dấu ^ để match với bắt đầu của string</p>
+<p>dấu $ để match với đuôi của string</p>
+<pre class="r"><code>x &lt;- c (&quot;apple&quot;, &quot;banana&quot;, &quot;pear&quot;)
+str_view(x, &quot;^a&quot;)</code></pre>
+<pre><code>## [1] │ &lt;a&gt;pple</code></pre>
+<pre class="r"><code>str_view(x, &quot;r$&quot;)</code></pre>
+<pre><code>## [3] │ pea&lt;r&gt;</code></pre>
+</div>
+<div id="ký-tự-lặp-lại" class="section level4">
+<h4>14.3.4 Ký tự lặp lại</h4>
+<p>x &lt;- “1888 is the longest year in Roman numerals: MDCCCLXXXVIII”</p>
+<ul>
+<li><p><code>?</code>: 0 or 1</p></li>
+<li><p><code>+</code>: 1 or more</p></li>
+<li><p><code>*</code>: 0 or more</p></li>
+</ul>
+<pre class="r"><code>x &lt;- &quot;1888 is the longest year in Roman numerals: MDCCCLXXXVIII&quot;
+str_view(x, &quot;CC?&quot;)</code></pre>
+<pre><code>## [1] │ 1888 is the longest year in Roman numerals: MD&lt;CC&gt;&lt;C&gt;LXXXVIII</code></pre>
+</div>
+</div>
+<div id="tools" class="section level3">
+<h3>14.4 Tools</h3>
+<div id="detech-matches" class="section level4">
+<h4>Detech matches</h4>
+<pre class="r"><code>x &lt;- c(&quot;apple&quot;, &quot;banana&quot;, &quot;pear&quot;)
+str_detect(x, &quot;e&quot;)</code></pre>
+<pre><code>## [1]  TRUE FALSE  TRUE</code></pre>
+<p>Dùng sum để đếm bao nhiêu trường hợp TRUE</p>
+<pre class="r"><code>sum(str_detect(words, &quot;^t&quot;))</code></pre>
+<pre><code>## [1] 65</code></pre>
+<p>Đếm các từ kết thúc bằng nguyên âm</p>
+<pre class="r"><code>sum(str_detect(words,&quot;[aeiou]$&quot;))</code></pre>
+<pre><code>## [1] 271</code></pre>
+<pre class="r"><code># Find all words containing at least one vowel, and negate
+no_vowels_1 &lt;- !str_detect(words, &quot;[aeiou]&quot;)
+# Find all words consisting only of consonants (non-vowels)
+no_vowels_2 &lt;- str_detect(words, &quot;^[^aeiou]+$&quot;)
+words[no_vowels_1]</code></pre>
+<pre><code>## [1] &quot;by&quot;  &quot;dry&quot; &quot;fly&quot; &quot;mrs&quot; &quot;try&quot; &quot;why&quot;</code></pre>
+<pre class="r"><code>words[no_vowels_2]</code></pre>
+<pre><code>## [1] &quot;by&quot;  &quot;dry&quot; &quot;fly&quot; &quot;mrs&quot; &quot;try&quot; &quot;why&quot;</code></pre>
+<p>Tìm và return các string có chứa kí tự</p>
+<pre class="r"><code>words[str_detect(words, &quot;x$&quot;)]</code></pre>
+<pre><code>## [1] &quot;box&quot; &quot;sex&quot; &quot;six&quot; &quot;tax&quot;</code></pre>
+<pre class="r"><code>str_subset(words, &quot;x$&quot;)</code></pre>
+<pre><code>## [1] &quot;box&quot; &quot;sex&quot; &quot;six&quot; &quot;tax&quot;</code></pre>
+<p>Muốn đưa kết quả vào tibble</p>
+<pre class="r"><code>df &lt;- tibble(
+  word = words,
+  i = seq_along(word)
+)
+df</code></pre>
+<pre><code>## # A tibble: 980 × 2
+##    word         i
+##    &lt;chr&gt;    &lt;int&gt;
+##  1 a            1
+##  2 able         2
+##  3 about        3
+##  4 absolute     4
+##  5 accept       5
+##  6 account      6
+##  7 achieve      7
+##  8 across       8
+##  9 act          9
+## 10 active      10
+## # … with 970 more rows</code></pre>
+<pre class="r"><code>df %&gt;% filter(str_detect(word, &quot;x$&quot;))</code></pre>
+<pre><code>## # A tibble: 4 × 2
+##   word      i
+##   &lt;chr&gt; &lt;int&gt;
+## 1 box     108
+## 2 sex     747
+## 3 six     772
+## 4 tax     841</code></pre>
+<p>Tạo bảng đếm số nguyên âm và phụ âm</p>
+<pre class="r"><code>df %&gt;% 
+  mutate(
+    vowels = str_count(word, &quot;[aeiou]&quot;),
+    consonants = str_count(word, &quot;[^aeiou]&quot;)
+  )</code></pre>
+<pre><code>## # A tibble: 980 × 4
+##    word         i vowels consonants
+##    &lt;chr&gt;    &lt;int&gt;  &lt;int&gt;      &lt;int&gt;
+##  1 a            1      1          0
+##  2 able         2      2          2
+##  3 about        3      3          2
+##  4 absolute     4      4          4
+##  5 accept       5      2          4
+##  6 account      6      3          4
+##  7 achieve      7      4          3
+##  8 across       8      2          4
+##  9 act          9      1          2
+## 10 active      10      3          3
+## # … with 970 more rows</code></pre>
+</div>
 </div>
 </div>
 

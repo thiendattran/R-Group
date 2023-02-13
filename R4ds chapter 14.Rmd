@@ -18,7 +18,8 @@ Chapter này hướng dẫn cách sử dụng string trong R, học về "regula
 Đầu tiên phải load tidyverse library
 
 ```{r setup, message = FALSE}
-library(tidyverse)
+library(tidyverse) #load data tidyver
+
 ```
 
 ### 14.2 Strings basics
@@ -51,3 +52,262 @@ print(single_quote)
 ```
 
 Vậy nếu muốn sử dụng dấu \\, phải gõ "\\\\"
+
+```{r}
+print("\\")
+writeLines("\\")
+```
+
+Để xem raw content phải dùng writeLines chứ không phải print
+
+### Các kí tự đặc biệt
+
+```{r}
+x <- "\u00b5"
+x
+```
+
+## Độ dài của string
+
+Các function base của R khó nhớ -> sử dụng function từ library stringr với tên function dễ sử dụng hơn
+
+```{r}
+str_length(c("a", "R for data science", NA))
+```
+
+### Cách ghép các strings lại
+
+Dùng function str_c
+
+```{r}
+str_c ("x","y","z")
+```
+
+Ghép strings lại với dấu nối
+
+```{r}
+str_c("x", "y", sep = ", ")
+```
+
+Nhưng khi trong str có NA:
+
+```{r}
+x <- c("A123", NA)
+str_c("<", x, ">")
+```
+
+```{r}
+str_c("<", str_replace_na(x), ">")
+```
+
+str_c là fuction cho vector
+
+```{r}
+str_c("prefix-", c("a", "b", "c"), "-suffix")
+```
+
+Object nào length = 0 sẽ bị mất trong str_c
+
+```{r}
+
+name <- "Hadley"
+time_of_day <- "morning"
+birthday <- FALSE
+
+str_c(
+  "Good ", time_of_day, " ", name, birthday, " and HAPPY BIRTHDAY",
+  "."
+)
+```
+
+```{r}
+str_c(
+  "Good ", time_of_day, " ", name,
+  if (birthday) " and HAPPY BIRTHDAY",
+  "."
+)
+```
+
+#### 14.2.3 Subsetting strings
+
+Dùng function str_sub() để tách strings ra. Function này sẽ sử dụng start and end để tách str ra the vị trí từng kí tự
+
+```{r}
+x <- c ("Apple", "Banana", "Pear")
+str_sub(x, 1, 3)
+str_sub(x, -3, -1)
+```
+
+str_sub() vẫn chạy nếu như string ngắn hơn position
+
+```{r}
+str_sub("a", 1, 5)
+```
+
+Đổi string viết hoa thành viết thường
+
+```{r}
+str_to_lower(x)
+```
+
+đổi thành viết hoa
+
+```{r}
+str_to_upper(x)
+```
+
+locale = "en"
+
+locale = "vie"
+
+locale = "fr"
+
+Xếp alphabet tuỳ theo ngôn ngữ bằng cách chọn locale
+
+```{r}
+x <- c("apple", "eggplant", "banana")
+
+str_sort(x, locale = "en")  # English
+
+str_sort(x, locale = "haw") # Hawaiian
+
+str_sort(x, locale = "vie")
+```
+
+function paste() và paste0() thường được sử dụng trong R base và không nằm trong package stringr
+
+```{r}
+paste("foo", "bar")
+paste0("foo","bar")
+```
+
+paste0 tương đương với str_c
+
+```{r}
+paste0("foo", "bar")
+str_c("foo", "bar")
+```
+
+Khác biệt của str_c với paste0 khi có missing values
+
+```{r}
+str_c("foo", NA)
+paste("foo", NA)
+paste0("foo", NA)
+```
+
+str_wrap() để xuống dòng ở các string dài
+
+```{r}
+str_wrap("Trời ơi cái hàng này dài quá trời") %>% writeLines()
+str_wrap("Trời ơi cái hàng này dài quá trời", width = 10) %>% writeLines()
+```
+
+#### 14.2.3 Tìm strings tương ứng với kí tự
+
+```{r}
+x <- c("apple", "banana", "pear")
+str_view(x, "an")
+```
+
+Dùng dấu . để thay thế các kí tự
+
+```{r}
+str_view(x, ".a")
+```
+
+Cách tìm kí tự .
+
+```{r}
+str_view(c("abc", "a.c", "bef"), "a\\.c")
+```
+
+cách viết dấu \\
+
+```{r}
+x <- "a\\b"
+writeLines(x)
+```
+
+dấu \^ để match với bắt đầu của string
+
+dấu \$ để match với đuôi của string
+
+```{r}
+x <- c ("apple", "banana", "pear")
+str_view(x, "^a")
+str_view(x, "r$")
+```
+
+#### 14.3.4 Ký tự lặp lại
+
+x \<- "1888 is the longest year in Roman numerals: MDCCCLXXXVIII"
+
+-   `?`: 0 or 1
+
+-   `+`: 1 or more
+
+-   `*`: 0 or more
+
+```{r}
+x <- "1888 is the longest year in Roman numerals: MDCCCLXXXVIII"
+str_view(x, "CC?")
+```
+
+### 14.4 Tools
+
+#### Detech matches
+
+```{r}
+x <- c("apple", "banana", "pear")
+str_detect(x, "e")
+```
+
+Dùng sum để đếm bao nhiêu trường hợp TRUE
+
+```{r}
+sum(str_detect(words, "^t"))
+```
+
+Đếm các từ kết thúc bằng nguyên âm
+
+```{r}
+sum(str_detect(words,"[aeiou]$"))
+```
+
+```{r}
+# Find all words containing at least one vowel, and negate
+no_vowels_1 <- !str_detect(words, "[aeiou]")
+# Find all words consisting only of consonants (non-vowels)
+no_vowels_2 <- str_detect(words, "^[^aeiou]+$")
+words[no_vowels_1]
+words[no_vowels_2]
+```
+
+Tìm và return các string có chứa kí tự
+
+```{r}
+words[str_detect(words, "x$")]
+str_subset(words, "x$")
+```
+
+Muốn đưa kết quả vào tibble
+
+```{r}
+df <- tibble(
+  word = words,
+  i = seq_along(word)
+)
+df
+df %>% filter(str_detect(word, "x$"))
+```
+
+Tạo bảng đếm số nguyên âm và phụ âm
+
+```{r}
+df %>% 
+  mutate(
+    vowels = str_count(word, "[aeiou]"),
+    consonants = str_count(word, "[^aeiou]")
+  )
+```

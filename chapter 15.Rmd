@@ -9,13 +9,17 @@ output: html_document
 
 Factors are used to work with categorical variables
 
+# Các function sử dụng trong trong chapter
+sort(): sắp xếp dữ liệu trong array
+factor(): gắn levels cho variables 
+
 # Pratice
 
 ```{r}
 library(tidyverse)
 ```
 
-a string is sorted by anaphabet
+a string is sorted by alphabet
 
 ```{r}
 x1 <- c("Dec","Apr","Jan","Mar")
@@ -95,7 +99,7 @@ gss_cat %>% ggplot(aes(race))+
   geom_bar()
 ```
 
-ggplot() sẽ không vẽ những modalite ko có giá trị (mặc định) -\> drop = FALSE để hiện tất cả modalité lên biểu đồ
+ggplot() sẽ không vẽ những modalite ko có giá trị (mặc định) -> drop = FALSE để hiện tất cả modalité lên biểu đồ
 
 ```{r}
 levels(gss_cat$race)
@@ -158,8 +162,6 @@ relig_summary %>%
     geom_point()
 ```
 
-
-
 ```{r}
 age_summary <- gss_cat %>% group_by(rincome) %>% 
   summarise(age=mean(age, na.rm=TRUE),
@@ -171,13 +173,10 @@ ggplot(age_summary,aes(age,fct_reorder(rincome,age)))+ geom_point()
 levels(gss_cat$rincome)
 ```
 
-
 ```{r}
 ggplot(age_summary, aes(age, fct_relevel(rincome, "Not applicable"))) +
   geom_point()
 ```
-
-
 
 ```{r}
 f <- factor(c("a", "b", "c", "d"), levels = c("b", "c", "d", "a"))
@@ -186,18 +185,25 @@ fct_relevel(f)
 fct_relevel(f, "a")
 fct_relevel(f, "b", "a")
 ```
- Move to the third position
+
+Move to the third position
+
 ```{r}
 fct_relevel(f, "a", after = 2)
 ```
- Relevel to the end
+
+Relevel to the end
+
 ```{r}
 fct_relevel(f, "a", after = Inf)
 ```
+
 ```{r}
 fct_relevel(f, sort)
 ```
- changer l'ordre de 'levels'
+
+changer l'ordre de 'levels'
+
 ```{r}
 x = c("van","thu","vi")
 x= factor(x)
@@ -205,9 +211,9 @@ x= factor(x)
 levels(x) <- c("vi","van","thu")
 levels(x)
 ```
- pardéfaut, fct_reorder2() utilise function last2 (trier les valeurs de 'prop' à la dernière groupe d'âge(89 ans)
- first2: trier les valeurs de 'prop' à la première groupe d'âge(18 ans)
- labs() = labels
+
+pardéfaut, fct_reorder2() utilise function last2 (trier les valeurs de 'prop' à la dernière groupe d'âge(89 ans) first2: trier les valeurs de 'prop' à la première groupe d'âge(18 ans) labs() = labels
+
 ```{r}
 by_age <- gss_cat %>%
   filter(!is.na(age)) %>%
@@ -227,8 +233,8 @@ ggplot(by_age, aes(age, prop, colour = fct_reorder2(marital, age, prop,.fun = fi
   labs(colour = "marital")
 ```
 
-fct_rev() renverse order of factor levels
-fct_infreq() reorder factor levels by frequency
+fct_rev() renverse order of factor levels fct_infreq() reorder factor levels by frequency
+
 ```{r}
 gss_cat %>% count(marital)
 gss_cat %>% ggplot(aes(marital))+
@@ -245,6 +251,7 @@ gss_cat %>%
 ```
 
 # recode levels
+
 ```{r}
 levels(gss_cat$partyid)
 gss_cat %>%  count(partyid)
@@ -260,7 +267,8 @@ gss_cat %>%
   count(partyid)
 ```
 
-# combine groups : created group is "Other" with fct_recode() 
+# combine groups : created group is "Other" with fct_recode()
+
 ```{r}
 gss_cat %>%
   mutate(partyid = fct_recode(partyid,
@@ -277,7 +285,8 @@ gss_cat %>%
   count(partyid)
 ```
 
- combine group: created new group with fct_collapse() grouper plusieurs levels en même ligne
+combine group: created new group with fct_collapse() grouper plusieurs levels en même ligne
+
 ```{r}
 gss_cat %>%
   mutate(partyid = fct_collapse(partyid,
@@ -289,7 +298,8 @@ gss_cat %>%
   count(partyid)
 ```
 
- grouper tous les petites groupes dans un groupe qui est comparé à le plus grand groupe (other et protestant)
+grouper tous les petites groupes dans un groupe qui est comparé à le plus grand groupe (other et protestant)
+
 ```{r}
 gss_cat %>% count(relig)
 gss_cat %>%
@@ -297,19 +307,11 @@ gss_cat %>%
   count(relig)
 ```
 
- fct_lump with required number of group
+fct_lump with required number of group
+
 ```{r}
 gss_cat %>%
   mutate(relig = fct_lump(relig, n = 10)) %>%
   count(relig, sort = TRUE) %>%
   print(n = Inf)
 ```
-
-
-
-
-
-
-
-
-
