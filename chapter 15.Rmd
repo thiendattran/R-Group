@@ -11,6 +11,7 @@ Factors are used to work with categorical variables
 # Các function sử dụng trong trong chapter
 sort(): sắp xếp dữ liệu trong array
 factor(): gắn levels cho variables 
+<<<<<<< HEAD
 parse_factor(): gắn levels cho factors nhưng có báo warning
 fct_reorder(): sắp xếp factor lại theo một biến khác
 fct_relevel(): đưa lại level ban đầu + ưu tiên level nào
@@ -22,6 +23,11 @@ fct_collapse(): nhập nhiều level thành 1 level
 fct_lump_n(): giữ level có tuần suất cao nhất, và gộp các level còn lại thành một
 
 Factor level không phải là biến ordinal mà chỉ để sắp xếp thứ tự xuất hiện và quy định các giá trị mặc định.
+=======
+fct_lump()
+fct_collapse()
+fct_infreq()
+>>>>>>> 74ff90ee1da37bc6d4ad3b949a883025a49fd620
 
 # Pratice
 
