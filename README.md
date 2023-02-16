@@ -1,7 +1,7 @@
 ### Note cho R-Group
 Testing repository cho R Group
 
-Viết note R markdown cho từng chương trong R4ds
+Viết note R markdown cho từng chương trong R4ds + tổng hợp các function sử dụng trong sách
 
 Note từng chapter
 
