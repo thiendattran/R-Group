@@ -12,7 +12,7 @@ Note từng chapter
 [Chapter 16](https://github.com/thiendattran/R-Group/blob/main/C16-R.md)\
 \
 [Chapter 19](https://github.com/thiendattran/R-Group/blob/main/Chapter-19.md)
-\
+
 ### Credits
 Luong Pham Thao Van - [Github](https://github.com/thaovan535353)\
 Vu Duc Hoan - [Github](https://github.com/VuHoan162)
