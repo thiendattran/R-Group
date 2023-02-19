@@ -54,8 +54,8 @@ chuyển dổi.
   (max(df$a, na.rm = TRUE) - min(df$a, na.rm = TRUE))
 ```
 
-    ##  [1] 0.7245723 0.0000000 0.4213848 0.8625028 0.8498481 0.5122021 0.6543174
-    ##  [8] 1.0000000 0.4604045 0.4443440
+    ##  [1] 0.000000000 0.253886254 0.918110143 0.004550652 0.334019723 0.787583638
+    ##  [7] 1.000000000 0.615523420 0.575215207 0.228299778
 
 Đoạn này chỉ sử dụng 1 input là df\$a.
 
@@ -66,8 +66,8 @@ x <- df$a
 (x - min(x, na.rm = TRUE)) / (max(x, na.rm = TRUE) - min(x, na.rm = TRUE))
 ```
 
-    ##  [1] 0.7245723 0.0000000 0.4213848 0.8625028 0.8498481 0.5122021 0.6543174
-    ##  [8] 1.0000000 0.4604045 0.4443440
+    ##  [1] 0.000000000 0.253886254 0.918110143 0.004550652 0.334019723 0.787583638
+    ##  [7] 1.000000000 0.615523420 0.575215207 0.228299778
 
 Dùng range để thay thế cho min max để gọn code. rng\[1\] tương đường giá
 trị min và rng\[2\] sẽ cho giá trị max
@@ -77,8 +77,8 @@ rng <- range(x, na.rm = TRUE)
 (x - rng[1]) / (rng[2] - rng[1])
 ```
 
-    ##  [1] 0.7245723 0.0000000 0.4213848 0.8625028 0.8498481 0.5122021 0.6543174
-    ##  [8] 1.0000000 0.4604045 0.4443440
+    ##  [1] 0.000000000 0.253886254 0.918110143 0.004550652 0.334019723 0.787583638
+    ##  [7] 1.000000000 0.615523420 0.575215207 0.228299778
 
 Sau khi đã có công thức chung, đơn giản hoá code, ta có thể biến nó
 thành 1 function với tên tuỳ chọn, ở đây chọn đặt tên function là
@@ -198,7 +198,8 @@ has_name(df)
 Trong Conditions chỉ có thể là TRUE hoặc FALSE, nếu dùng vector có cả
 TRUE lẫn FALSE, hoặc có chứ NA R sẽ báo lỗi
 
-``` if
+``` r
+if (c(TRUE, FALSE)) {}
 
 if (NA) {}
 ```
@@ -290,4 +291,318 @@ if (y == 0) {
 else {
   y ^ x
 }
+```
+
+## 19.5 Function arguments
+
+Có 2 loại argument trong function thường dùng là
+
+- data
+
+- details
+
+Ví dụ trong function log(), data argument là biến x muốn tính, mà detail
+argument là log cơ số bao nhiêu.
+
+``` r
+x = 10
+log (x, 2)
+```
+
+    ## [1] 3.321928
+
+Thường argument data sẽ nằm trước và argument detail nằm sau. Đa số
+detail argument sẽ được gắn default (trong trường hợp không có detail,
+function sẽ chạy theo default)
+
+Giả sử function dùng để tính khoảng tin cậy của một số trung bình
+
+``` r
+# Compute confidence interval around mean using normal approximation
+mean_ci <- function(x, conf = 0.95) {
+  se <- sd(x) / sqrt(length(x))
+  alpha <- 1 - conf
+  mean(x) + se * qnorm(c(alpha / 2, 1 - alpha / 2))
+}
+
+x <- runif(100)
+mean_ci(x)
+```
+
+    ## [1] 0.4358553 0.5488264
+
+``` r
+mean_ci(x, conf = 0.99)
+```
+
+    ## [1] 0.4181062 0.5665755
+
+Giá trị của value nên luôn được giữ ở dạng thường gặp nhất, hoặc để
+tránh nhầm lẫn trong function.
+
+Ví dụ default của na.rm thường là FALSE để khi trong data có missing
+value, function sẽ tự cho kết quả NA
+
+### 19.5.1 Đặt tên
+
+Một số tên thường dùng cho vector và dataframe
+
+- `x`, `y`, `z`: vectors.
+
+- `w`: a vector of weights.
+
+- `df`: a data frame.
+
+- `i`, `j`: numeric indices (typically rows and columns).
+
+- `n`: length, or number of rows.
+
+- `p`: number of columns.
+
+### 19.5.1 Kiểm tra input
+
+Giả sử trong trường hợp một function dùng để tính giá trị mean, var, sd:
+
+``` r
+wt_mean <- function(x, w) {
+  sum(x * w) / sum(w)
+}
+wt_var <- function(x, w) {
+  mu <- wt_mean(x, w)
+  sum(w * (x - mu) ^ 2) / sum(w)
+}
+wt_sd <- function(x, w) {
+  sqrt(wt_var(x, w))
+}
+```
+
+Trong trường hợp x và w, 2 vector độ dài không bằng nhau
+
+``` r
+wt_mean(1:6, 1:3)
+```
+
+    ## [1] 7.666667
+
+Fuction vẫn chạy bình tường và không có error. Vì vậy nên thêm đoạn code
+kiểm tra input trước khi vào code chính:
+
+``` r
+wt_mean <- function(x, w, na.rm = FALSE) {
+  if (!is.logical(na.rm)) {
+    stop("`na.rm` must be logical")
+  }
+  if (length(na.rm) != 1) {
+    stop("`na.rm` must be length 1")
+  }
+  if (length(x) != length(w)) {
+    stop("`x` and `w` must be the same length", call. = FALSE)
+  }
+  
+  if (na.rm) {
+    miss <- is.na(x) | is.na(w)
+    x <- x[!miss]
+    w <- w[!miss]
+  }
+  sum(w * x) / sum(w)
+}
+```
+
+cách khác để viết gọn lại
+
+``` r
+wt_mean <- function(x, w, na.rm = FALSE) {
+  stopifnot(is.logical(na.rm), length(na.rm) == 1)
+  stopifnot(length(x) == length(w))
+  
+  if (na.rm) {
+    miss <- is.na(x) | is.na(w)
+    x <- x[!miss]
+    w <- w[!miss]
+  }
+  sum(w * x) / sum(w)
+}
+wt_mean(1:6, 6:1, na.rm = "foo")
+```
+
+### 19.5.3 Dot-dot-dot(…)
+
+Một số function trong R sử dụng số lượng input không xác định
+
+``` r
+sum(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+```
+
+    ## [1] 55
+
+``` r
+stringr::str_c("a", "b", "c", "d", "e", "f")
+```
+
+    ## [1] "abcdef"
+
+Để tượng trưng cho số lượng input không xác đinh, sử dụng …
+
+Ví dụ function thêm dấu phẩy vào giữa string
+
+``` r
+commas <- function(...) stringr::str_c(..., collapse = ",")
+commas(letters[1:10])
+```
+
+    ## [1] "a,b,c,d,e,f,g,h,i,j"
+
+``` r
+rule <- function(..., pad = "-") {
+  title <- paste0(...)
+  width <- getOption("width") - nchar(title) - 5
+  cat(title, " ", stringr::str_dup(pad, width), "\n", sep = "")
+}
+rule("Important output")
+```
+
+    ## Important output -----------------------------------------------------------
+
+Tuy nhiên nếu sử dụng str_c(), ghi input sai chính tả sẽ không có error
+
+``` r
+x <- c(1, 2)
+sum(x, na.mr = TRUE)
+```
+
+    ## [1] 4
+
+## 19.6 Sử dụng return
+
+Sử dụng return để đưa ra kết quả sớm hơn đối với trường hợp đặt biệt
+
+``` r
+complicated_function <- function(x, y, z) {
+  if (length(x) == 0 || length(y) == 0) {
+    return(0)
+  }
+    
+  # Complicated code here
+}
+```
+
+Dùng trong if statement
+
+``` r
+f <- function() {
+  if (x) {
+    # Do 
+    # something
+    # that
+    # takes
+    # many
+    # lines
+    # to
+    # express
+  } else {
+    # return something short
+  }
+}
+```
+
+Return để tạo ra một function có thể pipe
+
+Để function có thể pipe được, có 2 dạng cơ bản: transformation và
+side-effects. Đối với transformation, object sẽ bị biến đổi khi return.
+Đối với dạng side-effect, object không thay đổi, return nên ở dạng
+invisible để có thể được pipe tiếp
+
+Ví dụ tạo một function để đếm số giá trị missing
+
+``` r
+show_missings <- function(df) {
+  n <- sum(is.na(df))
+  cat("Missing values: ", n, "\n", sep = "")
+  
+  invisible(df)
+}
+```
+
+``` r
+show_missings(mtcars)
+```
+
+    ## Missing values: 0
+
+Vẫn có thể dùng pipe nếu return bằng invisible
+
+``` r
+library(tidyverse)
+```
+
+    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ──
+    ## ✔ ggplot2 3.4.0     ✔ purrr   1.0.1
+    ## ✔ tibble  3.1.8     ✔ dplyr   1.1.0
+    ## ✔ tidyr   1.3.0     ✔ stringr 1.5.0
+    ## ✔ readr   2.1.3     ✔ forcats 1.0.0
+    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+    ## ✖ dplyr::filter() masks stats::filter()
+    ## ✖ dplyr::lag()    masks stats::lag()
+
+``` r
+mtcars %>% 
+  show_missings() %>% 
+  mutate(mpg = ifelse(mpg < 20, NA, mpg)) %>% 
+  show_missings() 
+```
+
+    ## Missing values: 0
+    ## Missing values: 18
+
+## 19.7 Environment
+
+Ví dụ function f
+
+``` r
+f <- function(x) {
+  x + y
+} 
+```
+
+Đối với các ngôn ngữ khác, function sẽ báo error vì y chưa được xác
+định. Nhưng trong R, R sử dụng lexical scoping để tìm giá trị giống với
+ký tự y chưa được xác định. Trong trường hợp này, y có thể được gán giá
+trị ngoài function vào.
+
+``` r
+y <- 100
+f(10)
+```
+
+    ## [1] 110
+
+``` r
+y <- 1000
+f(10)
+```
+
+    ## [1] 1010
+
+R có thể override các operation bình thường như +
+
+``` r
+`+` <- function(x, y) {
+  if (runif(1) < 0.1) {
+    sum(x, y)
+  } else {
+    sum(x, y) * 1.1
+  }
+}
+table(replicate(1000, 1 + 2))
+```
+
+    ## 
+    ##   3 3.3 
+    ##  97 903
+
+``` r
+#> 
+#>   3 3.3 
+#> 100 900
+rm(`+`)
 ```
