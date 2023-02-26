@@ -1,0 +1,369 @@
+---
+title: 'Chapter 22: Model basic'
+author: "Dat"
+date: "2023-02-23"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 23. Model basics
+
+## 23.1 Introduction
+
+Trong model sẽ bao gồm 2 phần cần chú ý:
+
+1.  Family: là dạng của model muốn sử dụng, tuyến tính hay hàm số bậc hai.
+2.  Fitted model: để fit dạng family model muốn sử dụng gần đúng nhất với data
+
+Quan trọng nhất là model "tốt nhất" (theo tuỳ chuẩn) không có nghĩa là model đúng với thực tế "true"
+
+> All models are wrong, but some are useful. - George Box
+
+> For such a model there is no need to ask the question "Is the model true?". If "truth" is to be the "whole truth" the answer must be "No". The only question of interest is "Is the model illuminating and useful?".
+
+Đầu tiên load các libary cần thiết
+
+```{r}
+library(tidyverse)
+library(modelr)
+options(na.action = na.warn)
+```
+
+## 23.2 Model cơ bản
+
+Đầu tiên xem data set của sim1 trong modelr, gồm 2 biến x và y ở dạng continuous
+
+```{r}
+sim1 %>% head
+```
+
+```{r}
+ggplot(sim1, aes(x, y)) +
+         geom_point()
+```
+
+Từ plot có thể thấy hai biến x và y có correlation mạnh và ở dạng tuyến tính, y = a_0 + a_1\*x.
+
+Thử dùng geom_abline để vẽ các đường thẳng với intercept và slope bất kỳ
+
+```{r}
+models <- tibble(
+  a1 = runif(250, -20, 40),
+  a2 = runif(250, -5, 5)
+)
+
+ggplot(sim1, aes(x, y)) + 
+  geom_abline(aes(intercept = a1, slope = a2), data = models, alpha = 1/4) +
+  geom_point() 
+```
+
+=\> Phải tìm giá trị a_0 và a_1 khớp nhất với data.
+
+Sử dụng khoảng cách khác biệt giá trị y dự đoán và giá y trị thực tế để tìm model thích hợp nhất.
+
+Ví dụ, tính giá trị y dự đoán nếu a_0 = 7 và a_1 =1.5
+
+```{r}
+model1 <- function(a, data) {
+  a[1] + data$x * a[2]
+}
+model1(c(7, 1.5), sim1)
+```
+
+viết function để tính độ lệch
+
+```{r}
+measure_distance <- function(mod, data) {
+  diff <- data$y - model1(mod, data)
+  sqrt(mean(diff ^ 2))
+}
+measure_distance(c(7, 1.5), sim1)
+```
+
+Dùng purrr package để tính căn bậc hai của sai số bình phương cho 250 models
+
+```{r}
+sim1_dist <- function(a1, a2) {
+  measure_distance(c(a1, a2), sim1)
+}
+
+models <- models %>% 
+  mutate(dist = purrr::map2_dbl(a1, a2, sim1_dist))
+models
+```
+
+Thử vẽ 10 model với độ lệch nhỏ nhất
+
+```{r}
+ggplot(sim1, aes(x, y)) + 
+  geom_point(size = 2, colour = "grey30") + 
+  geom_abline(
+    aes(intercept = a1, slope = a2, colour = -dist), 
+    data = filter(models, rank(dist) <= 10)
+  )
+```
+
+Ngoài ra còn có thể chuyển giá trị a_1 a_2 vào scatterplot để xem
+
+```{r}
+ggplot(models, aes(a1, a2)) +
+  geom_point(data = filter(models, rank(dist) <= 10), size = 4, colour = "red") +
+  geom_point(aes(colour = -dist))
+```
+
+Bỏ scatterplot này vào lưới để chọn giá trị a1 và a2 một cách đồng đều hơn
+
+```{r}
+grid <- expand.grid(
+  a1 = seq(-5, 20, length = 25),
+  a2 = seq(1, 3, length = 25)
+  ) %>% 
+  mutate(dist = purrr::map2_dbl(a1, a2, sim1_dist))
+
+grid %>% 
+  ggplot(aes(a1, a2)) +
+  geom_point(data = filter(grid, rank(dist) <= 10), size = 4, colour = "red") +
+  geom_point(aes(colour = -dist)) 
+```
+
+Đem 10 models theo scatter plot này vào lại data
+
+```{r}
+ggplot(sim1, aes(x, y)) + 
+  geom_point(size = 2, colour = "grey30") + 
+  geom_abline(
+    aes(intercept = a1, slope = a2, colour = -dist), 
+    data = filter(grid, rank(dist) <= 10)
+  )
+```
+
+Nếu làm cho grid càng nhỏ thì cuối cùng ta sẽ có model fit "best".
+
+Hoặc sử dụng phương pháp Newton-Raphson: chọn một điểm rồi tìm slope dốc nhất.
+
+```{r}
+best <- optim(c(0, 0), measure_distance, data = sim1)
+best$par
+
+ggplot(sim1, aes(x, y)) + 
+  geom_point(size = 2, colour = "grey30") + 
+  geom_abline(intercept = best$par[1], slope = best$par[2])
+```
+
+Phương pháp này ứng dụng được trên mọi dạng model, nhưng trong model linear, có function lm để fit model tốt nhất với data
+
+```{r}
+sim1_mod <- lm(y ~ x, data = sim1)
+coef(sim1_mod)
+```
+
+### 23.2.1 Exercices
+
+## 23.3 Vẽ model
+
+### 23.3.1 Dự đoán
+
+Tạo data dự đoán
+
+```{r}
+grid <- sim1 %>%
+  data_grid(x)
+grid
+```
+
+Thêm giá trị y dự đoán vào
+
+```{r}
+grid <- grid %>% 
+  add_predictions(sim1_mod) 
+grid
+```
+
+Vẽ data dự đoán vào trong plot data quan sát
+
+```{r}
+ggplot(sim1, aes(x)) +
+  geom_point(aes(y = y)) +
+  geom_line(aes(y = pred), data = grid, colour = "red", linewidth = 1)
+```
+
+### Residuals
+
+Function add_residuals() để thêm giá trị residual vào bảng prediction
+
+```{r}
+sim1 <- sim1 %>% 
+  add_residuals(sim1_mod)
+sim1
+```
+
+Cách phương pháp vẽ graph cho residual
+
+```{r}
+ggplot(sim1, aes(resid)) + 
+  geom_freqpoly(binwidth = 0.5)
+```
+
+Hoặc ở dạng scatterplot
+
+```{r}
+ggplot(sim1, aes(x, resid)) + 
+  geom_ref_line(h = 0) +
+  geom_point() 
+```
+
+Scatterplot của resid ở dạng random noise -\> không có bias
+
+### 23.3.3 Exercises
+
+Dùng model_matrix() để xem dạng model
+
+```{r}
+df <- tribble(
+  ~y, ~x1, ~x2,
+  4, 2, 5,
+  5, 1, 6
+)
+df
+model_matrix(df, y ~ x1)
+```
+
+dạng model là: y \~ x1 tương đương với y =
+
+Thêm -1 để bỏ cột intercept mặc định
+
+```{r}
+model_matrix(df, y ~ x1 - 1)
+```
+
+```{r}
+model_matrix(df, y ~ x1 + x2)
+```
+
+### 23.4.1 Dạng categorical
+
+```{r}
+df <- tribble(
+  ~ sex, ~ response,
+  "male", 1,
+  "female", 2,
+  "male", 1
+)
+model_matrix(df, response ~ sex)
+```
+
+```{r}
+sim2 %>% head()
+```
+
+ở dạng graph
+
+```{r}
+ggplot(sim2) +
+  geom_point(aes(x, y))
+```
+
+fit model vào
+
+```{r}
+mod2 <- lm(y ~ x, data = sim2)
+
+grid <- sim2 %>% 
+  data_grid(x) %>% 
+  add_predictions(mod2)
+grid
+```
+
+Prediction của y ở mỗi x chính là trung bình của y ở điểm đó
+
+```{r}
+ggplot(sim2, aes(x)) + 
+  geom_point(aes(y = y)) +
+  geom_point(data = grid, aes(y = pred), colour = "red", size = 4)
+```
+
+### Interaction (continuous and categorical)
+
+Trong trường hợp sim 3 vừa có continuous and categorical
+
+```{r}
+ggplot(sim3, aes(x1, y)) + 
+  geom_point(aes(colour = x2))
+```
+
+2 models có thể fit cho data này
+
+```{r}
+mod1 <- lm(y ~ x1 + x2, data = sim3)
+mod2 <- lm(y ~ x1 * x2, data = sim3)
+```
+
+(y \~ x1 + x2): y = a_0 + a_1\*x1 + a_2\*x2
+
+(y \~ x1 \* x2): y = a_0 + a_1\*x1 + a_2\*x2 +a_12\*x1\*x2
+
+Tạo bảng prediction
+
+```{r}
+grid <- sim3 %>% 
+  data_grid(x1, x2) %>% 
+  gather_predictions(mod1, mod2)
+grid
+```
+
+Graph
+
+```{r}
+ggplot(sim3, aes(x1, y, colour = x2)) + 
+  geom_point() + 
+  geom_line(data = grid, aes(y = pred)) + 
+  facet_wrap(~ model)
+```
+
+Xem residual của từng line
+
+```{r}
+sim3 <- sim3 %>% 
+  gather_residuals(mod1, mod2)
+
+ggplot(sim3, aes(x1, resid, colour = x2)) + 
+  geom_point() + 
+  facet_grid(model ~ x2)
+```
+
+### Interactions (2 continuous)
+
+```{r}
+mod1 <- lm(y ~ x1 + x2, data = sim4)
+mod2 <- lm(y ~ x1 * x2, data = sim4)
+
+grid <- sim4 %>% 
+  data_grid(
+    x1 = seq_range(x1, 5), 
+    x2 = seq_range(x2, 5) 
+  ) %>% 
+  gather_predictions(mod1, mod2)
+grid
+```
+
+vẽ
+
+```{r}
+ggplot(grid, aes(x1, x2)) + 
+  geom_tile(aes(fill = pred)) + 
+  facet_wrap(~ model)
+```
+
+Không thấy rõ model nào fit tốt hơn
+
+```{r}
+ggplot(grid, aes(x1, pred, colour = x2, group = x2)) + 
+  geom_line() +
+  facet_wrap(~ model)
+ggplot(grid, aes(x2, pred, colour = x1, group = x1)) + 
+  geom_line() +
+  facet_wrap(~ model)
+```
