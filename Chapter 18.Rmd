@@ -1,0 +1,126 @@
+---
+title: "Chapter 18"
+author: "Dat"
+date: "2023-03-04"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Chapter 18: Pipe
+
+Load library
+
+```{r}
+library(magrittr)
+library(tidyverse)
+```
+
+Load data diamonds in ggplot2
+
+```{r}
+diamonds <- ggplot2::diamonds
+diamonds2 <- diamonds %>%
+  dplyr::mutate(price_per_carat = price/carat)
+```
+
+Check RAM sử dụng
+
+```{r}
+pryr::object_size(diamonds)
+```
+
+```{r}
+pryr::object_size(diamonds2)
+```
+
+```{r}
+pryr::object_size(diamonds, diamonds2)
+```
+
+Dung lượng lưu trữ được share giữa 2 object khi dùng pipe
+
+Trường hợp không thể dùng được pipe khi
+
+1.  Function sử dụng "current environment"
+
+```{r}
+assign("x", 10)
+x
+```
+
+```{r}
+"x" %>% assign(100)
+x
+```
+
+Phải xác nhận environment trước
+
+```{r}
+env <- environment()
+"x" %>% assign(100, envir = env)
+x
+
+```
+
+2.  Function sử dụng lazy evaluation
+
+## Khi nào không nên sử dụng pipe
+
+-   Nhiều hơn khoảng 10 bước -\> tạo object để dễ debug
+-   Sử dụng nhiều input
+
+## Các tools khác từ magrittr
+
+### T pipe
+
+```{r}
+vector<- rnorm(100)
+vector %>%
+  matrix(ncol=2) %>%
+  plot() %>%
+  str()
+```
+
+```{r}
+vector %>%
+  matrix(ncol=2) %T>%
+  plot() %>%
+  str()
+
+```
+
+### \$ pipe
+
+Sử dụng khi function cần dạng API
+
+```{r}
+mtcars
+```
+
+```{r, error = TRUE}
+mtcars %>%
+  cor(disp, mpg)
+```
+
+```{r}
+cor(mtcars$disp,  mtcars$mpg)
+```
+
+```{r}
+mtcars %$%
+  cor(disp, mpg)
+```
+
+```{r}
+mtcars <- mtcars %>%
+  mutate(cyc_2 = cyl *2 )
+mtcars
+```
+
+```{r}
+mtcars %<>% mutate(cyc_2 = cyl * 2)
+mtcars
+```
