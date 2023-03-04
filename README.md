@@ -11,6 +11,8 @@ Note từng chapter
 \
 [Chapter 16](https://github.com/thiendattran/R-Group/blob/main/C16-R.md)\
 \
+[Chapter 18](https://github.com/thiendattran/R-Group/blob/main/Chapter-18.md)\
+\
 [Chapter 19](https://github.com/thiendattran/R-Group/blob/main/Chapter-19.md)
 
 ### Credits
