@@ -1,0 +1,381 @@
+---
+title: "VECTOR"
+output:
+  pdf_document: default
+  html_document: default
+date: "2023-03-11"
+---
+
+import library
+```{r setup, include = FALSE}
+library(tidyverse)
+```
+
+Lý thuyết : 
+2 types of vector :
+- Atomic vector(homogenerous) : logical (boulean : T/F), int (số nguyên), double (float : số thập phân), character (string: kí tự), complex, raw. 
+
+- Lists (heterogeneous) : a = list(1,2,'b',1.5)
+(recursive vectors : đệ quy) : b =list(1,2,3,list('a','b','c'))
+
+- NULL/NA : absence of vector, vector of length 0
+
+
+```{r}
+knitr::include_graphics("C:/Users/HaoLE/Downloads/data-structures-overview.png")
+
+```
+
+
+2 properties : 
+
+-type
+```{r}
+print(letters)
+print(1:10)
+typeof(letters)
+typeof(1:10)
+```
+
+-length
+```{r}
+x <- list("a", "b", 1:10)
+print(x)  # biễu diễn list x
+typeof(x)  #check data type của 1 list
+length(x)  #check độ dài của list
+
+#sapply(x, class) #check data type của từng data point trong list
+#str(x)
+```
+
+```{r}
+my_list <- list(name = "John",
+                age = 30,
+                hobbies = c("reading", "hiking", "cooking"),
+                contact = list(phone = "555-1234", email = "john@example.com"))
+typeof(my_list)
+length(my_list)
+
+#sapply(my_list, class)
+```
+
+There are three important types of augmented vectors: 
+-factors (int)
+-dates and date-times (double)
+-data frames or tibbles (list)
+
+
+
+Logical
+```{r}
+1:10 %% 3 == 0  #từ 1 đến 10 số nào chia hết cho 3
+c(TRUE, TRUE, FALSE, NA)
+```
+
+In R, numbers are doubles by default. To make an integer, place an L after the number:
+
+```{r}
+typeof(1)
+typeof(1L)
+1.5L
+typeof(1.5L)
+```
+In the third line, 1.5L returns a numeric value of 1.5 because R automatically coerces the integer 1L to a double-precision floating-point number before performing the arithmetic operation. However, the typeof() function would still return "double" because the resulting value is a double-precision floating-point number.
+
+
+```{r}
+x <- sqrt(2) ^ 2 #căn bậc 2 mũ 2
+x
+x - 2  #0.0000000000000004440892
+```
+Instead of comparing floating point numbers using ==, you should use dplyr::near() which allows for some numerical tolerance.
+
+
+int : NA
+double : NA, NaN, -Inf, Inf
+```{r}
+c(-1, 0, 1) / 0
+```
+is.finite()   : 0			
+is.infinite() :	Inf
+is.na()			  : NA
+is.nan()      : NaN
+
+```{r}
+is.finite(0)     #returns TRUE because 0 is a finite number.
+is.infinite(Inf) #returns TRUE because Inf represents positive infinity.
+is.na(NA)        #returns TRUE because NA represents a missing value.
+is.nan(NaN)      #returns TRUE because NaN represents a not-a-number value (chia cho 0/lấy căn số âm)
+```
+
+```{r}
+
+#install.packages("pryr")
+#library(pryr)
+
+
+x <- "This is a reasonably long string."
+pryr::object_size(x)
+
+y <- rep(x, 1000)
+head(y, n=5)
+pryr::object_size(y)
+```
+
+Normally you don’t need to know about these different types because you can always use NA and it will be converted to the correct type using the implicit coercion rules described next.
+```{r}
+NA            # logical
+NA_integer_   # integer
+NA_real_      # double
+NA_character_ # character
+```
+
+Coercion :
+-explicit coercion :  as.logical(), as.integer(), as.double(), or as.character()
+
+-implicit coercion : 
+```{r}
+x <- sample(20, 100, replace = TRUE) #tạo 1 mẫu 100 số có giá trị từ 1 - 20
+y <- x > 10
+print(x)
+print(y)
+sum(y)  # how many are greater than 10?
+mean(y) # what proportion are greater than 10?
+```
+
+most complex type always wins : logical < int < double < character 
+```{r}
+typeof(c(TRUE, 1L))
+typeof(c(1L, 1.5))
+typeof(c(1.5, "a"))
+
+#h <- c(1.5, "a", 1L, TRUE)
+#typeof(h)
+#sapply(h, class)
+
+#g <- list(1.5, "a", 1L, TRUE)
+#typeof(g)
+#sapply(g,class)
+```
+lgl	int	dbl	chr	list
+is_logical()     : logical			
+is_integer()     : int			
+is_double()	     : double	
+is_numeric()	   : int , double	
+is_character()	 :character
+is_atomic()	     :all trừ list
+is_list()		     : list
+is_vector()      : all
+
+
+Scalars
+recycling rules : expand the shortest vector to the same length as the longest
+```{r}
+sample(10) + 100
+runif(10) > 0.5
+```
+```{r}
+1:10 + 1:2
+
+# 1 2 3 4 5 6 7 8 9 10 
+# 1 2 1 2 1 2 1 2 1 2  
+```
+
+```{r}
+1:10 + 1:3
+
+#1 2 3 4 5 6 7 8 9 10
+#1 2 3 1 2 3 1 2 3 1
+```
+
+```{r}
+tibble(x = 1:4, y = 1:2)
+
+tibble(x = 1:4, y = rep(1:2, 2))
+
+
+tibble(x = 1:4, y = rep(1:2, each = 2))
+
+```
+Naming vectors
+
+```{r}
+c(x = 1, y = 2, z = 4)
+```
+
+```{r}
+set_names(1:3, c("a", "b", "c"))
+```
+Subsetting
+
+filter() : to filter the rows in a tibble (only works with tibble)
+x[a] : subsetting function
+
+1. A numeric vector containing only integers. The integers must either be all positive, all negative, or zero.
+
+```{r}
+x <- c("one", "two", "three", "four", "five")
+x[c(3, 2, 5)]
+x[c(1, 1, 5, 5, 5, 2)]
+```
+
+Negative values drop the elements at the specified positions:
+```{r}
+x[c(-1, -3, -5)]
+```
+Error
+```{r}
+#x[c(1, -1)]
+x[0] #return no values
+```
+2. Subsetting with a logical vector keeps all values corresponding to a TRUE value. This is most often useful in conjunction with the comparison functions.
+
+```{r}
+x <- c(10, 3, NA, 5, 8, 1, NA)
+
+x[!is.na(x)] # All non-missing values of x
+
+x[x %% 2 == 0] # All even (or missing!) values of x
+
+```
+3. If you have a named vector, you can subset it with a character vector
+```{r}
+x <- c(abc = 1, def = 2, xyz = 5)
+x
+x[c("xyz", "def")]
+
+```
+x[]   : lấy hết tất cả hàng, cột
+x[1,] : lấy hàng đầu tiên. tất cả cột
+x[,-1]: lấy tất cả hàng, tất cả cột trừ cột đầu tiên 
+
+```{r}
+knitr::include_graphics("C:/Users/HaoLE/Downloads/2019-08-06Done.jpg")
+```
+
+Recursive vectors (lists)
+
+```{r}
+x <- list(1, 2, 3)
+x
+```
+```{r}
+str(x)
+
+x_named <- list(a = 1, b = 2, c = 3)
+str(x_named)
+
+```
+```{r}
+y <- list("a", 1L, 1.5, TRUE)
+str(y)
+```
+```{r}
+z <- list(list(1, 2), list(3, 4))
+str(z)
+```
+Visualising lists
+
+```{r}
+x1 <- list(c(1, 2), c(3, 4))
+x1
+x2 <- list(list(1, 2), list(3, 4))
+x2
+x3 <- list(1, list(2, list(3)))
+x3
+```
+```{r}
+knitr::include_graphics("C:/Users/HaoLE/Downloads/lists-structure.png")
+```
+
+Subsetting
+
+```{r}
+a <- list(a = 1:3, b = "a string", c = pi, d = list(-1, -5))
+a
+```
+```{r}
+str(a[1:2])
+
+str(a[4])
+
+```
+```{r}
+a$a
+a[["a"]]
+```
+```{r}
+knitr::include_graphics("C:/Users/HaoLE/Downloads/lists-subsetting.png")
+```
+
+Attributes
+```{r}
+x <- 1:10
+attr(x, "greeting")
+attr(x, "greeting") <- "Hi!"
+attr(x, "farewell") <- "Bye!"
+attributes(x)
+
+```
+Augmented vectors
+
+Factors
+```{r}
+x <- factor(c("ab", "cd", "ab"), levels = c("ab", "cd", "ef"))
+typeof(x)
+attributes(x)
+
+```
+
+Dates and date-times
+```{r}
+x <- as.Date("1971-01-01")
+unclass(x)
+
+typeof(x)
+
+attributes(x)
+
+```
+```{r}
+install.packages("lubridate")
+library(lubridate)
+
+x <- lubridate::ymd_hm("1970-01-01 01:00")
+unclass(x)
+
+typeof(x)
+
+attributes(x)
+
+```
+```{r}
+attr(x, "tzone") <- "US/Pacific"
+x
+
+attr(x, "tzone") <- "US/Eastern"
+x
+```
+```{r}
+y <- as.POSIXlt(x)
+typeof(y)
+
+attributes(y)
+
+```
+Tibbles
+
+```{r}
+tb <- tibble::tibble(x = 1:5, y = 5:1)
+view(tb)
+typeof(tb)
+attributes(tb)
+
+```
+```{r}
+df <- data.frame(x = 1:5, y = 5:1)
+typeof(df)
+attributes(df)
+
+```
+
