@@ -1,0 +1,618 @@
+---
+title: "Iteration"
+output: github_document
+date: "2023-03-16"
+---
+
+```{r setup, include=FALSE}
+install.packages("tidyverse")
+install.packages("purrr")
+library(tidyverse)
+library(purrr)
+```
+
+1.  **For loops**
+
+```{r}
+df <- tibble(
+a = rnorm(10),
+b = rnorm(10),
+c = rnorm(10),
+d = rnorm(10)
+)
+df
+```
+
+Tính trung vị cho từng cột :
+
+```{r}
+median(df$a)
+median(df$b)
+median(df$c)
+median(df$d)
+```
+
+Tạo 1 vòng lặp để tính trung vị :
+
+```{r}
+output <- vector("double", ncol(df))  # 1. output
+for (i in seq_along(df)) {            # 2. sequence
+  output[[i]] <- median(df[[i]])      # 3. body
+}
+output
+```
+
+```{r}
+y <- vector("double", 0)
+seq_along(y) 
+1:length(y)
+```
+
+**Mỗi vòng lặp for có 3 thành phần :**
+
+-Output
+
+vector("type",length) : create an empty vector of given length
+
+"type" : "logical", "integer", "double", "character", etc
+
+-Sequence : for ... in ...
+
+-Body : function, gán biến, etc...
+
+**Syntax:**
+
+output \<- ....
+
+for (i in ...) {
+
+function
+
+}
+
+output
+
+1.  Compute the mean of every column in `mtcars`.
+
+```{r}
+mtcars
+
+output <- vector("double",ncol(mtcars))
+for (i in seq_along(mtcars)) {
+  output[[i]] <- mean(mtcars[[i]])
+  
+}
+output
+```
+
+Determine the type of each column in nycflights13::flights.
+
+```{r}
+nycflights13::flights
+output <- vector("character",ncol(nycflights13::flights))
+for (i in seq_along(nycflights13::flights)) {
+  output[[i]] <- typeof(nycflights13::flights[[i]])
+}
+output
+```
+
+## **2. For loop variations**
+
+There are four variations on the basic theme of the for loop:
+
+1.  Modifying an existing object, instead of creating a new object.
+
+    ```{r}
+    df <- tibble(
+      a = rnorm(10),
+      b = rnorm(10),
+      c = rnorm(10),
+      d = rnorm(10)
+    )
+    rescale01 <- function(x) {
+      rng <- range(x, na.rm = TRUE)
+      (x - rng[1]) / (rng[2] - rng[1])
+    }
+
+    df$a <- rescale01(df$a)
+    df$b <- rescale01(df$b)
+    df$c <- rescale01(df$c)
+    df$d <- rescale01(df$d)
+    ```
+
+1.Output: đã có
+
+2.Sequence : DF = list of columns --\> seq_along(df)
+
+3.Body : function rescale01()
+
+```{r}
+for (i in seq_along(df)) {
+  df[[i]] <- rescale01(df[[i]])
+}
+```
+
+[[ i ]] : take a single element
+
+2.  Looping patterns (names, values, indices)
+
+    3 basic ways:
+
+    -loop over the numeric indices: for (i in seq_along(xs)) -loop over the elements: for (x in xs)
+
+    -loop over the names : for (nm in names(xs))
+
+```{r}
+results <- vector("list", length(x))
+names(results) <- names(x)
+```
+
+```{r}
+for (i in seq_along(x)) {
+  name <- names(x)[[i]]
+  value <- x[[i]]
+}
+```
+
+3.  Handling outputs of unknown length.
+
+```{r}
+means <- c(0, 1, 2)
+
+output <- double()
+for (i in seq_along(means)) {
+  n <- sample(100, 1)
+  output <- c(output, rnorm(n, means[[i]]))
+}
+str(output)
+```
+
+```{r}
+out <- vector("list", length(means))
+for (i in seq_along(means)) {
+  n <- sample(100, 1)
+  out[[i]] <- rnorm(n, means[[i]])
+}
+str(out)
+
+str(unlist(out))
+```
+
+purrr::flatten_dbl() : flatten a list of vectors into a single vector
+
+4.  Handling sequences of unknown length.
+
+while (condition) { #body }
+
+2 thanh phan : condition, body
+
+Co the viet lai vong lap for duoi dang vong lap while nhung khong the lam nguoc lai
+
+for (i in seq_along(x)) { \# body }
+
+i \<- 1 while (i \<= length(x)) { \# body i \<- i + 1 }
+
+```{r}
+flip <- function() sample(c("T", "H"), 1)
+
+flips <- 0
+nheads <- 0
+
+while (nheads < 3) {
+  if (flip() == "H") {
+    nheads <- nheads + 1
+  } else {
+    nheads <- 0
+  }
+  flips <- flips + 1
+}
+flips
+```
+
+3.  **For loops vs. functionals**
+
+```{r}
+df <- tibble(
+  a = rnorm(10),
+  b = rnorm(10),
+  c = rnorm(10),
+  d = rnorm(10)
+)
+```
+
+```{r}
+output <- vector("double", length(df))
+for (i in seq_along(df)) {
+  output[[i]] <- mean(df[[i]])
+}
+output
+```
+
+```{r}
+col_mean <- function(df) {
+  output <- vector("double", length(df))
+  for (i in seq_along(df)) {
+    output[i] <- mean(df[[i]])
+  }
+  output
+}
+```
+
+```{r}
+col_median <- function(df) {
+  output <- vector("double", length(df))
+  for (i in seq_along(df)) {
+    output[i] <- median(df[[i]])
+  }
+  output
+}
+col_sd <- function(df) {
+  output <- vector("double", length(df))
+  for (i in seq_along(df)) {
+    output[i] <- sd(df[[i]])
+  }
+  output
+}
+```
+
+f1 \<- function(x) abs(x - mean(x)) \^ 1 f2 \<- function(x) abs(x - mean(x)) \^ 2 f3 \<- function(x) abs(x - mean(x)) \^ 3
+
+f \<- function(x, i) abs(x - mean(x)) \^ i
+
+```{r}
+col_summary <- function(df, fun) {
+  out <- vector("double", length(df))
+  for (i in seq_along(df)) {
+    out[i] <- fun(df[[i]])
+  }
+  out
+}
+col_summary(df, median)
+col_summary(df, mean)
+```
+
+4.  **The map functions :**
+
+    loi ich : de viet, de doc hon vong for (ko lien quan van de toc do)
+
+map() makes a list. map_lgl() makes a logical vector. map_int() makes an integer vector. map_dbl() makes a double vector. map_chr() makes a character vector.
+
+```{r, error=TRUE}
+map_dbl(df, mean)
+
+map_dbl(df, median)
+
+map_dbl(df, sd)
+
+```
+
+```{r, error=TRUE}
+df %>% map_dbl(mean)
+
+df %>% map_dbl(median)
+
+df %>% map_dbl(sd)
+
+```
+
+differences between map\_\*() and col_summary() : -All purrr functions are implemented in C. This makes them a little faster at the expense of readability.
+
+-The second argument, .f, the function to apply, can be a formula, a character vector, or an integer vector. You'll learn about those handy shortcuts in the next section.
+
+-map\_\*() uses ... ([dot dot dot]) to pass along additional arguments to .f each time it's called:
+
+```{r}
+map_dbl(df, mean, trim = 0.5)
+
+```
+
+```{r}
+z <- list(x = 1:3, y = 4:5)
+map_int(z, length)
+
+```
+
+Shortcuts
+
+```{r}
+models <- mtcars %>% 
+  split(.$cyl) %>% 
+  map(function(df) lm(mpg ~ wt, data = df))
+models
+```
+
+```{r}
+models <- mtcars %>% 
+  split(.$cyl) %>% 
+  map(~lm(mpg ~ wt, data = .))
+models
+```
+
+```{r}
+models %>% 
+  map(summary) %>% 
+  map_dbl(~.$r.squared)
+```
+
+```{r}
+models %>% 
+  map(summary) %>% 
+  map_dbl("r.squared")
+```
+
+```{r}
+x <- list(list(1, 2, 3), list(4, 5, 6), list(7, 8, 9))
+x
+x %>% map_dbl(2)
+```
+
+Base R
+
+-lapply() : giống với map(), ngoại trừ map() phù hợp với tất cả các chức năng khác trong purrr và có thể sử dụng phím tắt cho .f. -sapply() : bao boc xung quanh lappy(), tu dong don gian hoa dau ra nhung ko bao gio biet minh se nhan dc output gi
+
+```{r}
+x1 <- list(
+  c(0.27, 0.37, 0.57, 0.91, 0.20),
+  c(0.90, 0.94, 0.66, 0.63, 0.06), 
+  c(0.21, 0.18, 0.69, 0.38, 0.77)
+)
+x2 <- list(
+  c(0.50, 0.72, 0.99, 0.38, 0.78), 
+  c(0.93, 0.21, 0.65, 0.13, 0.27), 
+  c(0.39, 0.01, 0.38, 0.87, 0.34)
+)
+
+threshold <- function(x, cutoff = 0.8) x[x > cutoff]
+x1 %>% sapply(threshold) %>% str()
+
+x2 %>% sapply(threshold) %>% str()
+
+```
+
+-vapplpy(df, is.numeric, logical) : giai phap an toan cho sapply(),cung cap doi so xac dinh type, co the tao ra cac matrice (map() chi tao cac vector)
+
+5.  **Dealing with failure**
+
+    safely() : nhan vao 1 function va tra ve 1 phien ban da sua doi, list cua 2 phan tu: -ket qua ban dau, neu co loi se la NULL -error object, neu operation thanh cong thi se la NULL.n
+
+try() : thinh thoang tra ve ket qua ban dau thinh thoang tra ve error object
+
+```{r}
+safe_log <- safely(log)
+str(safe_log(10))
+
+str(safe_log("a"))
+
+```
+
+```{r}
+x <- list(1, 10, "a")
+y <- x %>% map(safely(log))
+str(y)
+
+```
+
+purrr::transpose(): tra ve 2 lists : all errors va all outputs
+
+```{r}
+y <- y %>% transpose()
+str(y)
+
+```
+
+```{r}
+
+
+
+y$result[is_ok] %>% flatten_dbl()
+
+```
+
+possibly() : giong ham safely() nhung don gian hon (dua vao gia tri mac dinh)
+
+```{r}
+x <- list(1, 10, "a")
+x %>% map_dbl(possibly(log, NA_real_))
+```
+
+quietly() : giong ham safely() nhung thay tra ve error, no tra ve output, messages va warning
+
+6.  **Mapping over multiple arguments**
+
+map2() , pmap() : iterate multiple related inputs in parallel pmap() : takes a list of arguments
+
+```{r}
+mu <- list(5, 10, -3)
+mu %>% 
+  map(rnorm, n = 5) %>% 
+  str()
+
+```
+
+Thay doi do lech chuan
+
+```{r}
+sigma <- list(1, 5, 10)
+seq_along(mu) %>% 
+  map(~rnorm(5, mu[[.]], sigma[[.]])) %>% 
+  str()
+
+```
+
+```{r}
+map2(mu, sigma, rnorm, n = 5) %>% str()
+
+```
+
+Note that the arguments that vary for each call come before the function; arguments that are the same for every call come after.
+
+```{r}
+n <- list(1, 3, 5)
+args1 <- list(n, mu, sigma)
+args1 %>%
+  pmap(rnorm) %>% 
+  str()
+
+```
+
+If you don't name the list's elements, pmap() will use positional matching when calling the function.
+
+```{r}
+args2 <- list(mean = mu, sd = sigma, n = n)
+args2 %>% 
+  pmap(rnorm) %>% 
+  str()
+```
+
+```{r}
+params <- tribble(
+  ~mean, ~sd, ~n,
+    5,     1,  1,
+   10,     5,  3,
+   -3,    10,  5
+)
+params %>% 
+  pmap(rnorm)
+```
+
+Invoking different functions
+
+```{r}
+f <- c("runif", "rnorm", "rpois")
+param <- list(
+  list(min = -1, max = 1), 
+  list(sd = 5), 
+  list(lambda = 10)
+)
+```
+
+invoke_map() : list of function, list of giving the arguments, n
+
+```{r}
+invoke_map(f, param, n = 5) %>% str()
+
+```
+
+```{r}
+sim <- tribble(
+  ~f,      ~params,
+  "runif", list(min = -1, max = 1),
+  "rnorm", list(sd = 5),
+  "rpois", list(lambda = 10)
+)
+sim %>% 
+  mutate(sim = invoke_map(f, params, n = 10))
+```
+
+8.  **Walk** :
+
+    giong ham map(), muon goi 1 ham bi tac dung phu cua no thay vi gia tri tra ve cua no Thuong dung de export output ra man hinh hoac save ra dia
+
+```{r}
+x <- list(1, "a", 3)
+
+x %>% 
+  walk(print)
+
+```
+
+walk2() , pwalk() : save each file to the corresponding location on disk if we have a list of plots and a vector of file names
+
+```{r}
+library(ggplot2)
+plots <- mtcars %>% 
+  split(.$cyl) %>% 
+  map(~ggplot(., aes(mpg, wt)) + geom_point())
+paths <- stringr::str_c(names(plots), ".pdf")
+
+pwalk(list(paths, plots), ggsave, path = tempdir())
+```
+
+9.  **Other patterns of for loops**
+
+Predicate functions :return a single TRUE or FALSE keep(), discard() :
+
+```{r}
+iris %>% 
+  keep(is.factor) %>% 
+  str()
+
+iris %>% 
+  discard(is.factor) %>% 
+  str()
+
+```
+
+some() and every() determine if the predicate is true for any or for all of the elements.
+
+```{r}
+x <- list(1:5, letters, list(10))
+
+x %>% 
+  some(is_character)
+
+x %>% 
+  every(is_vector)
+```
+
+detect() finds the first element where the predicate is true; detect_index() returns its position.
+
+```{r}
+x <- sample(10)
+x
+
+x %>% 
+  detect(~ . > 5)
+
+x %>% 
+  detect_index(~ . > 5)
+```
+
+head_while() and tail_while() take elements from the start or end of a vector while a predicate is true:
+
+```{r}
+x %>% 
+  head_while(~ . > 5)
+
+x %>% 
+  tail_while(~ . > 5)
+```
+
+Reduce and accumulate
+
+```{r, error=TRUE}
+#install.packages("purrr")
+#library(dplyr)
+#library(purrr)
+#packageVersion("purrr")
+#unloadNamespace("purrr")
+
+dfs <- list(
+  age = tibble(name = "John", age = 30),
+  sex = tibble(name = c("John", "Mary"), sex = c("M", "F")),
+  trt = tibble(name = "Mary", treatment = "A")
+)
+
+dfs %>% reduce(full_join)
+
+```
+
+```{r, error=TRUE}
+vs <- list(
+  c(1, 3, 5, 6, 10),
+  c(1, 2, 3, 7, 8, 10),
+  c(1, 2, 3, 4, 8, 9, 10)
+)
+
+vs %>% reduce(intersect)
+```
+
+reduce() takes a "binary" function (i.e. a function with two primary inputs), and applies it repeatedly to a list until there is only a single element left.
+
+accumulate() is similar but it keeps all the interim results.
+
+```{r, error=TRUE}
+x <- sample(10)
+x
+x %>% accumulate(`+`)
+```
