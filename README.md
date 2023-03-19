@@ -15,7 +15,7 @@ Note từng chapter
 \
 [Chapter 19](https://github.com/thiendattran/R-Group/blob/main/Chapter-19.md)\
 \
-[Chapter 21](https://github.com/thiendattran/R-Group/blob/main/iteration.md)\
+[Chapter 21](https://github.com/thiendattran/R-Group/blob/main/iteration.md)
 
 ### Credits
 Luong Pham Thao Van - [Github](https://github.com/thaovan535353)\
