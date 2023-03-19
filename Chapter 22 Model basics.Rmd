@@ -367,3 +367,7 @@ ggplot(grid, aes(x2, pred, colour = x1, group = x1)) +
   geom_line() +
   facet_wrap(~ model)
 ```
+
+
+
+

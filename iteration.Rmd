@@ -5,10 +5,9 @@ date: "2023-03-16"
 ---
 
 ```{r setup, include=FALSE}
-install.packages("tidyverse")
-install.packages("purrr")
 library(tidyverse)
 library(purrr)
+knitr::opts_chunk$set(error = TRUE)
 ```
 
 1.  **For loops**
@@ -142,7 +141,7 @@ for (i in seq_along(df)) {
 
     -loop over the names : for (nm in names(xs))
 
-```{r}
+```{r, error = TRUE}
 results <- vector("list", length(x))
 names(results) <- names(x)
 ```

@@ -47,7 +47,7 @@ df$d <- (df$d - min(df$d, na.rm = TRUE)) /
   (max(df$d, na.rm = TRUE) - min(df$d, na.rm = TRUE))
 ```
 
-Dùng function để giải quyết cái trường hợp cần lặp lại 1 phương thức chuyển dổi.
+Dùng function để giải quyết các trường hợp cần lặp lại 1 phương thức chuyển dổi.
 
 Đầu tiên cần phải xác định có bao nhiêu input trong 1 đoạn trước
 
@@ -82,7 +82,7 @@ rescale01 <- function(x) {
 rescale01(c(0, 5, 10))
 ```
 
-Ba vấn đề quan trong khi viết function:
+Ba vấn đề quan trọng khi viết function:
 
 1.  Phải chọn tên cho function (chọn dễ hiểu và tránh trùng lặp). Ở đây mình chọn **rescale01** để gọi function chuyển vector thành từ 0 đến 1
 2.  Cần xác định input hoặc argument cần cho function. ví dụ nếu mình cần 3 input thì sử dụng: tên_function (x, y, z)
@@ -107,13 +107,23 @@ df$c <- rescale01(df$c)
 df$d <- rescale01(df$d)
 ```
 
-### Exercice
+### Exercise
 
 ```{r}
 rescale01(c(1, -Inf, 2 , 3, NA, 5, 4,10, Inf))
 ```
 
 Viết lại function rescale để -Inf thành 0 và Inf 1
+
+```{r}
+rescale01 <- function(x) {
+  rng <- range(x, na.rm = TRUE, finite = TRUE)
+  y <- (x - rng[1])/(rng[2] - rng[1])
+  y[y == -Inf] <- 0
+  y[y ==  Inf]  <- 1
+}
+rescale01(c(1, -Inf, 2 , 3, NA, 5, 4,10, Inf))
+```
 
 ## 19.3 Function are for humans and computers
 
@@ -170,7 +180,7 @@ has_name(df)
 
 ### 19.4.1 Conditions
 
-Trong Conditions chỉ có thể là TRUE hoặc FALSE, nếu dùng vector có cả TRUE lẫn FALSE, hoặc có chứ NA R sẽ báo lỗi
+Trong Conditions chỉ có thể là TRUE hoặc FALSE, nếu dùng vector có cả TRUE lẫn FALSE, hoặc có chứa NA R sẽ báo lỗi
 
 ```{r eval = FALSE}
 if (c(TRUE, FALSE)) {}
@@ -405,7 +415,7 @@ rule <- function(..., pad = "-") {
 rule("Important output")
 ```
 
-Tuy nhiên nếu sử dụng str_c(), ghi input sai chính tả sẽ không có error
+Tuy nhiên nếu không sử dụng str_c(), ghi input sai chính tả sẽ không có error
 
 ```{r}
 x <- c(1, 2)
