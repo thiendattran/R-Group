@@ -1,5 +1,5 @@
 ---
-title: 'Chapter 22: Model basic'
+title: 'Chapter 23: Model basic'
 author: "Dat"
 date: "2023-02-23"
 output: pdf_document
@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Trong model sẽ bao gồm 2 phần cần chú ý:
 
-1.  Family: là dạng của model muốn sử dụng, tuyến tính hay hàm số bậc hai.
+1.  Family: là dạng của model muốn sử dụng, tuyến tính hay hàm số bậc hai, ba
 2.  Fitted model: để fit dạng family model muốn sử dụng gần đúng nhất với data
 
 Quan trọng nhất là model "tốt nhất" (theo tuỳ chuẩn) không có nghĩa là model đúng với thực tế "true"
@@ -34,7 +34,7 @@ options(na.action = na.warn)
 
 ## 23.2 Model cơ bản
 
-Đầu tiên xem data set của sim1 trong modelr, gồm 2 biến x và y ở dạng continuous
+Đầu tiên xem data set của sim1 trong model r, gồm 2 biến x và y ở dạng continuous
 
 ```{r}
 sim1 %>% head
@@ -162,7 +162,7 @@ coef(sim1_mod)
 
 ### 23.2.1 Exercices
 
-## 23.3 Vẽ model
+##  23.3 Vẽ model
 
 ### 23.3.1 Dự đoán
 
@@ -243,7 +243,34 @@ model_matrix(df, y ~ x1 - 1)
 model_matrix(df, y ~ x1 + x2)
 ```
 
+## 23.4 Formulas và model families
+
+Model cơ bản y \~ x viết ở dưới dạng y = a_1 + a_2 \* x
+
+Để xem cách R làm model, dùng function model_matrix
+
+```{r}
+df <- tribble(
+  ~y, ~x1, ~x2,
+  4, 2, 5,
+  5, 1, 6
+)
+model_matrix(df, y ~ x1)
+```
+
+R tự động thêm cột intercept vào model với cột đầu chỉ có số 1. Cách để bỏ cột số một trong model_matrix
+
+```{r}
+model_matrix(df, y ~ x1 -1 )
+```
+
+```{r}
+model_matrix(df, y ~ x1 + x2)
+```
+
 ### 23.4.1 Dạng categorical
+
+Tạo data frame mẫu và model response phụ thuộc vào giới tính
 
 ```{r}
 df <- tribble(
@@ -349,6 +376,30 @@ grid <- sim4 %>%
 grid
 ```
 
+Sử dụng seq_range() thay thế cho data_grid(). Thay thế cho việc sử dụng giá trị unique của x
+
+Sử dụng các argument như
+
+-   Ví dụ
+
+    ```{r}
+    seq_range(c(0.0123, 0.923423), n = 5)
+    ```
+
+-   pretty = TRUE
+
+    ```{r}
+    seq_range(c(0.0123, 0.923423), n = 5, pretty = TRUE)
+    ```
+
+-   trim = 0.1, cắt 10% giá trị đuôi
+
+    ```{r}
+    x1 <- rcauchy(100)
+    print(x1)
+    seq_range(x1, n = 5, trim = 0.1)
+    ```
+
 vẽ
 
 ```{r}
@@ -368,6 +419,93 @@ ggplot(grid, aes(x2, pred, colour = x1, group = x1)) +
   facet_wrap(~ model)
 ```
 
+### 23.4.4 Transformations
 
+log(y) \~ sqrt(x1) + x2 biến đổi thành log(y) = a_1 + a_2 \* sqrt(x1) + a_3 \* x2
 
+Nếu transformation sử dụng dấu +, \*, \^ hay -, ta phải bỏ vào I( )
 
+y \~ x + I(x \^ 2) biến đổi thành y = a_1 + a_2 \* x + a_3 \* x\^2
+
+R sẽ tự động bỏ biến dư nếu viết dạng x + x
+
+`y ~ x ^ 2 + x` sẽ thành `y = a_1 + a_2 * x`
+
+```{r}
+df <- tribble(
+  ~y, ~x,
+   1,  1,
+   2,  2, 
+   3,  3
+)
+model_matrix(df, y ~ x^2 + x)
+```
+
+```{r}
+model_matrix(df, y ~ I(x^2) + x)
+```
+
+Chọn polynomial để smooth tốt
+
+```{r}
+model_matrix(df, y ~ poly(x, 2))
+```
+
+Khi sử dụng poly, ngoài range của data, polynomial sẽ tự động dự đoán positive and negative infinity. Có sử dụng natural spline
+
+```{r}
+library(splines)
+model_matrix(df, y ~ ns(x, 2))
+```
+
+```{r}
+sim5 <- tibble(
+  x = seq(0, 3.5 * pi, length = 50),
+  y = 4 * sin(x) + rnorm(length(x))
+)
+
+ggplot(sim5, aes(x, y)) +
+  geom_point()
+```
+
+Fit thử 5 loại spline model
+
+```{r}
+mod1 <- lm(y ~ ns(x, 1), data = sim5)
+mod2 <- lm(y ~ ns(x, 2), data = sim5)
+mod3 <- lm(y ~ ns(x, 3), data = sim5)
+mod4 <- lm(y ~ ns(x, 4), data = sim5)
+mod5 <- lm(y ~ ns(x, 5), data = sim5)
+
+grid <- sim5 %>% 
+  data_grid(x = seq_range(x, n = 50, expand = 0.1)) %>% 
+  gather_predictions(mod1, mod2, mod3, mod4, mod5, .pred = "y")
+
+ggplot(sim5, aes(x, y)) + 
+  geom_point() +
+  geom_line(data = grid, colour = "red") +
+  facet_wrap(~ model)
+```
+
+## 23.5 Missing value
+
+```{r}
+df <- tribble(
+  ~x, ~y,
+  1, 2.2,
+  2, NA,
+  3, 3.5,
+  4, 8.3,
+  NA, 10
+)
+
+mod <- lm(y ~ x, data = df)
+```
+
+```{r}
+mod <- lm(y ~ x, data = df, na.action = na.exclude)
+```
+
+```{r}
+nobs(mod)
+```
