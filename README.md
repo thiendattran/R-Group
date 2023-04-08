@@ -5,7 +5,10 @@ Viết note R markdown cho từng chương trong R4ds + tổng hợp các functi
 
 Note từng chapter
 
-[Chapter 14](https://github.com/thiendattran/R-Group/blob/main/R4ds-chapter-14.md)[Chapter 15](https://github.com/thiendattran/R-Group/blob/main/chapter-15.md)[Chapter 16](https://github.com/thiendattran/R-Group/blob/main/C16-R.md)[Chapter 18](https://github.com/thiendattran/R-Group/blob/main/Chapter-18.md)
+[Chapter 14](https://github.com/thiendattran/R-Group/blob/main/R4ds-chapter-14.md)
+[Chapter 15](https://github.com/thiendattran/R-Group/blob/main/chapter-15.md)
+[Chapter 16](https://github.com/thiendattran/R-Group/blob/main/C16-R.md)
+[Chapter 18](https://github.com/thiendattran/R-Group/blob/main/Chapter-18.md)
 [Chapter 19](https://github.com/thiendattran/R-Group/blob/main/Chapter-19.md)
 [Chapter 21](https://github.com/thiendattran/R-Group/blob/main/iteration.md)
 [Chapter 23](https://github.com/thiendattran/R-Group/blob/main/Chapter-23.md)
