@@ -380,7 +380,7 @@ df %>%
 1.  Nếu cần sử dụng 1 biến trong column-list, sử dụng mutate và map
 2.  Nếu cần sử dụng nhiều biến, nên sử dụng unnest
 
-### 25.5.1 List thành vector 
+### 25.5.1 List thành vector
 
 ```{r}
 df <- tribble(
