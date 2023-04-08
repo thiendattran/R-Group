@@ -14,7 +14,7 @@ Note từng chapter
 [Chapter 23](https://github.com/thiendattran/R-Group/blob/main/Chapter-23.md) - Model baisc\
 [Chapter 24](https://github.com/thiendattran/R-Group/blob/main/Chapter-24-Model-building.md) - Model building\
 [Chapter 25](https://github.com/thiendattran/R-Group/blob/main/Chapter-25.md) - Many models\
-[Chapter 27](https://github.com/thiendattran/R-Group/blob/main/Chapter-27-R-Markdown.md) R Markdown\
+[Chapter 27](https://github.com/thiendattran/R-Group/blob/main/Chapter-27-R-Markdown.md) - R Markdown\
 
 ### Credits
 Luong Pham Thao Van - [Github](https://github.com/thaovan535353)\
