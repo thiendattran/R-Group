@@ -15,8 +15,16 @@ Note từng chapter
 \
 [Chapter 19](https://github.com/thiendattran/R-Group/blob/main/Chapter-19.md)\
 \
-[Chapter 21](https://github.com/thiendattran/R-Group/blob/main/iteration.md)
+[Chapter 21](https://github.com/thiendattran/R-Group/blob/main/iteration.md)\
+\
+[Chapter 23]()\
+
+
+[Chapter 24](https://github.com/thiendattran/R-Group/blob/main/Chapter-24-Model-building.md)
+
+[Chapter 27](https://github.com/thiendattran/R-Group/blob/main/Chapter-27-R-Markdown.md)
 
 ### Credits
 Luong Pham Thao Van - [Github](https://github.com/thaovan535353)\
-Vu Duc Hoan - [Github](https://github.com/VuHoan162)
+Vu Duc Hoan - [Github](https://github.com/VuHoan162)\
+Truong Ly Thuy Nguyen - [Github] (https://github.com/nguyentruonglt)
