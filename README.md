@@ -21,7 +21,9 @@ Note từng chapter
 \
 [Chapter 24](https://github.com/thiendattran/R-Group/blob/main/Chapter-24-Model-building.md)\
 \
-[Chapter 27](https://github.com/thiendattran/R-Group/blob/main/Chapter-27-R-Markdown.md)\
+[Chapter 25](https://github.com/thiendattran/R-Group/blob/main/Chapter-25.md)\
+\
+[Chapter 27](https://github.com/thiendattran/R-Group/blob/main/Chapter-27-R-Markdown.md)
 
 ### Credits
 Luong Pham Thao Van - [Github](https://github.com/thaovan535353)\
