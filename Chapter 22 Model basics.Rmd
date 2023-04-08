@@ -1,9 +1,13 @@
----
-title: 'Chapter 23: Model basic'
-author: "Dat"
-date: "2023-02-23"
-output: pdf_document
----
+-   <div>
+
+    ---
+    title: 'Chapter 23: Model basic'
+    author: "Dat"
+    date: "2023-02-23"
+    output: github_document
+    ---
+
+    </div>
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -37,7 +41,7 @@ options(na.action = na.warn)
 Đầu tiên xem data set của sim1 trong model r, gồm 2 biến x và y ở dạng continuous
 
 ```{r}
-sim1 %>% head
+sim1
 ```
 
 ```{r}
@@ -66,11 +70,15 @@ Sử dụng khoảng cách khác biệt giá trị y dự đoán và giá y tr�
 
 Ví dụ, tính giá trị y dự đoán nếu a_0 = 7 và a_1 =1.5
 
+y = a_0 + a_1 \*x
+
+y = 7 + 1.5 \*x
+
 ```{r}
 model1 <- function(a, data) {
   a[1] + data$x * a[2]
 }
-model1(c(7, 1.5), sim1)
+model1(c(7, 1.5), sim1) #y = 7 + 1.5 *x 
 ```
 
 viết function để tính độ lệch
@@ -136,7 +144,7 @@ ggplot(sim1, aes(x, y)) +
   geom_point(size = 2, colour = "grey30") + 
   geom_abline(
     aes(intercept = a1, slope = a2, colour = -dist), 
-    data = filter(grid, rank(dist) <= 10)
+    data = filter(grid, rank(dist) <= 1)
   )
 ```
 
@@ -162,7 +170,7 @@ coef(sim1_mod)
 
 ### 23.2.1 Exercices
 
-##  23.3 Vẽ model
+## 23.3 Vẽ model
 
 ### 23.3.1 Dự đoán
 
@@ -177,6 +185,8 @@ grid
 Thêm giá trị y dự đoán vào
 
 ```{r}
+sim1
+#y = a_1 + a_2 * x
 grid <- grid %>% 
   add_predictions(sim1_mod) 
 grid
@@ -217,6 +227,10 @@ ggplot(sim1, aes(x, resid)) +
 
 Scatterplot của resid ở dạng random noise -\> không có bias
 
+```{r}
+plot(sim1_mod)
+```
+
 ### 23.3.3 Exercises
 
 Dùng model_matrix() để xem dạng model
@@ -238,6 +252,8 @@ Thêm -1 để bỏ cột intercept mặc định
 ```{r}
 model_matrix(df, y ~ x1 - 1)
 ```
+
+y = 2 + x
 
 ```{r}
 model_matrix(df, y ~ x1 + x2)

@@ -1,0 +1,434 @@
+---
+title: "Chapter 25"
+author: "Dat"
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 25 Many models
+
+## 25.1 Giới thiệu
+
+Chapter này sẽ đưa ra 3 ý tưởng để có thể sử dụng nhiều model cùng lúc với nhau một cách dễ dàng:
+
+1.  Sử dùng nhiều model nhỏ để hiểu các datasets phức tạp
+2.  Sử dụng list-column để chưa cái dạng data ngẫu nhiên trong dataset, ví dụ như một cột để chứa model linear
+3.  Sử dụng brooom package by David Robinson, để biến model thành dạng tidy.
+
+### Library cần thiết
+
+```{r}
+library(modelr)
+library(tidyverse)
+library(gapminder)
+```
+
+## 25.2 Gapminder
+
+Data được sử dụng từ Hans Rosling, bác sĩ và nhà thống kê người thuỵ Điện
+
+```{r}
+gapminder
+```
+
+Để trả lời câu hỏi "tuổi thọ trung bình(life expectancy) có thay đổi theo thời gian (year) hay không cho từng quốc gia?", đầu tiên kiểm tra data dưới dạng plot
+
+```{r}
+gapminder %>%
+  ggplot(aes(year, lifeExp, group = country)) +
+  geom_line(alpha = 1/3)
+```
+
+Data chỉ có khoảng 1700 observations và 3 biến nhưng cũng khó có thể hiểu được trên plot nảy. Nhưng nhìn chung tất cả nước đều có tuổi thọ trung bình tăng. Tuy nhiên có 1 vài quốc gia không đi theo trend này, làm sao để thấy được các quốc gia này rõ hơn?
+
+Sử dụng phương pháp như tỏng chapter 24. Tách phần trend tăng lên bình thường ra khỏi model và đánh giá dựa trên residuals.
+
+Cách làm như chapter 24 đối với 1 nước
+
+```{r}
+nz <- filter (gapminder, country == "New Zealand")
+nz %>%
+  ggplot(aes(year,lifeExp)) +
+  geom_line() +
+  ggtitle("Full data = ")
+
+nz_mod <- lm(lifeExp ~ year , data = nz)
+nz %>%
+  add_predictions(nz_mod) %>%
+  ggplot(aes(year,pred)) +
+  geom_line() +
+  ggtitle("Linear trend + ")
+
+nz %>% add_residuals(nz_mod) %>%
+  ggplot(aes(year, resid)) +
+  geom_hline(yintercept = 0, color = "white", size = 3) +
+  geom_line() +
+  ggtitle("Remaining pattern")
+```
+
+Cách làm tương tự với từng nước khác nhau như thế nào?
+
+### 25.2.1 Nested data
+
+Trong trường hợp này khó có thể sử dụng map function từ purr. Chúng ta cần dạng data mới ở dạng nested dataframe
+
+```{r}
+by_country <- gapminder %>%
+  group_by(country, continent) %>%
+  nest()
+
+by_country
+```
+
+Chúng ta tạo được data frame ở dạng nested, cột data chưa dataframe nhỏ của từng quốc gia khác nhau. Cách để xem data trong từng quốc gia khác nhau ở dạng nested dataframe
+
+```{r}
+by_country$data[[1]]
+```
+
+### 25.2.2 List-column
+
+Cách để tạo model cho từng quốc gia khác nhau. Ta có dạng model cơ bản ở dạng
+
+```{r}
+country_model <- function(df) {
+  lm(lifeExp ~ year, data = df)
+}
+```
+
+Chúng ta có thể sử dụng purrr:map() để apply country_model cho từng element
+
+```{r}
+models <- map(by_country$data, country_model)
+```
+
+Đưa models này thành một cột khác trong tibble
+
+```{r}
+by_country <- by_country %>%
+   mutate(model = map(data, country_model))
+by_country
+```
+
+Cách làm này để chúng ta có thể chứa tất cả mọi biến và model liên quan vào chung chùng một bảng. Trong trường hợp ta chỉ cần model của châu Âu
+
+```{r}
+by_country %>%
+  filter(continent == "Europe")
+```
+
+### 25.2.3 Unnesting
+
+Từ data 142 nước chúng ta đã có 142 model khác nhau theo từng quốc gia chung 1 bảng dataframe. Làm tượn tự để thêm cột residuals vào từng model-data
+
+```{r}
+by_country <- by_country %>%
+  mutate(
+    resids = map2(data, model, add_residuals)
+  )
+by_country
+```
+
+Xem data residual bằng cách unnest
+
+```{r}
+resids <- unnest(by_country, resids)
+resids
+```
+
+Sau khi đã có residual cho từng quốc gia, ta có thể plot dưới dạng
+
+```{r}
+resids %>% 
+  ggplot(aes(year, resid)) +
+    geom_line(aes(group = country), alpha = 1 / 3) + 
+    geom_smooth(se = FALSE)
+```
+
+Chia theo subgroup từng lục địa
+
+```{r}
+resids %>% 
+  ggplot(aes(year, resid)) +
+    geom_line(aes(group = country), alpha = 1 / 3) + 
+    geom_smooth(se = FALSE)+
+  facet_wrap(~continent)
+```
+
+Model từ Africa vẫn còn patterns để có thể fit vào model
+
+### 25.2.4 Chất lượng model (quality)
+
+Ngoài cách nhìn residual, còn một số cách khác để đánh giá model. Sử dụng package broom::glance để xem thêm các chỉ số logLik, AIC, BIC, deviance
+
+```{r}
+broom::glance(nz_mod)
+```
+
+Lặp lại cho 142 model
+
+```{r}
+by_country %>%
+  mutate(glance = map(model, broom::glance)) %>%
+  unnest(glance)
+```
+
+Vẫn còn chứa cột data ở dạng list, vì lý do function unnest()
+
+```{r}
+glance <- by_country %>% 
+  mutate(glance = map(model, broom::glance)) %>% 
+  unnest(glance, .drop = TRUE)
+```
+
+Deprecated function already
+
+Xem các model theo thứ tự rsquare
+
+```{r}
+glance %>% 
+  arrange(r.squared)
+```
+
+Các model tệ nhất ở Châu Phi,
+
+```{r}
+glance %>% 
+  ggplot(aes(continent, r.squared)) + 
+    geom_jitter(width = 0.5)
+```
+
+thấy xem model của những đất nước có residual nhỏ
+
+```{r}
+bad_fit <- filter (glance, r.squared < 0.25)
+
+gapminder %>% 
+  semi_join(bad_fit, by = "country") %>% 
+  ggplot(aes(year, lifeExp, colour = country)) +
+    geom_line()
+```
+
+Thấy được ảnh hưởng ủa HIV/AIDS và diệt chủng ở Rwanda
+
+## 25.3 List-column
+
+Cách sử dụng list-column trong R. Base R có nhiều function làm khó trong việc sử dụng list column. Ví dụ muốn tạo cột ở dạng
+
+| X           |
+|-------------|
+| list(1,2,3) |
+| list(3,4,5) |
+|             |
+
+```{r}
+data.frame(x = list(1:3, 3:5)
+)
+```
+
+Để tránh data.frame() tự đưa list về bảng ta cần dùng dấu I()
+
+```{r}
+data.frame(
+  x = I(list(1:3, 3:5)),
+  y = c("1, 2", "3, 4 ,5")
+)
+```
+
+Ở dạng tibble
+
+```{r}
+tibble(
+  x = list(1:3, 3:5),
+  y = c("1, 2", "3, 5, 5")
+)
+```
+
+dễ hơn nếu sử dụng tribble
+
+```{r}
+tribble(
+   ~x, ~y,
+  1:3, "1, 2",
+  3:5, "3, 4, 5"
+)
+```
+
+## 25.4 Tạo list column
+
+Thường chúng ta sẽ tạo list column từ column thường, sử dụng 1 trong 3 phương pháp:
+
+1.  tidyr::nest
+2.  mutate
+3.  summerise
+
+Generally, cần phải chắc là list column phải cùng dạng homogenous cho mỗi dòng.
+
+### 25.4.1 Sử dụng nesting
+
+nest tạo nested dataframe. mỗi nested data frame là một meta observation. Các cột khác sẽ là cột giá trị variables khác của meta observation đó.
+
+```{r}
+gapminder %>%
+  group_by(country, continent) %>%
+  nest()
+```
+
+Ngoài ra còn có thể sự dụng trên ungroup data, nếu viết các cột cần group lại với nhau ra
+
+```{r}
+gapminder %>%
+  nest(data = c(year:gdpPercap))
+```
+
+### 25.4.2 Từ vectorize function
+
+```{r}
+df <- tribble(
+  ~x1,
+  "a,b,c", 
+  "d,e,f,g"
+) 
+
+df %>% 
+  mutate(x2 = stringr::str_split(x1, ","))
+```
+
+```{r}
+df %>% 
+  mutate(x2 = stringr::str_split(x1, ",")) %>% 
+  unnest(x2)
+```
+
+và các function vectorize khác như map(), map2(), pmap() từ purrr
+
+```{r}
+sim <- tribble(
+  ~f,      ~params,
+  "runif", list(min = -1, max = 1),
+  "rnorm", list(sd = 5),
+  "rpois", list(lambda = 10)
+)
+sim
+```
+
+```{r}
+sim %>%
+  mutate(sims = invoke_map(f, params, n = 10))
+#invoke_map is deprecated
+```
+
+### 25.4.3 Tạo nest từ summaries\* (
+
+summarise đã bị xoá và cần đổi về sử dụng rẻame
+
+```{r}
+mtcars %>%
+  group_by(cyl) %>%
+  reframe(q = quantile(mpg))
+```
+
+```{r}
+mtcars %>% 
+  group_by(cyl) %>% 
+  reframe(q = list(quantile(mpg)))
+```
+
+```{r}
+probs <- c(0.01, 0.25, 0.5, 0.75, 0.99)
+mtcars %>% 
+  group_by(cyl) %>% 
+  reframe(p = list(probs), q = list(quantile(mpg, probs))) %>% 
+  unnest(c(p, q))
+```
+
+### 25.4.4 Từ named list
+
+```{r}
+x <- list(
+  a = 1:5,
+  b = 3:4, 
+  c = 5:6
+) 
+
+df <- enframe(x)
+df
+```
+
+Để sử dụng dữ liệu trong cột name và list-column ta dùng map2 function
+
+```{r}
+df %>%
+  mutate(
+    smry = map2_chr(name, value, ~ stringr::str_c(.x,": ", .y[1]))
+  )
+```
+
+```{r}
+df %>%
+  unnest()
+```
+
+## 25.5 Đơn giản hoá list-column
+
+Để sử dụng được các function khác, phải đơn giản hoá list-column thành column bình thường
+
+1.  Nếu cần sử dụng 1 biến trong column-list, sử dụng mutate và map
+2.  Nếu cần sử dụng nhiều biến, nên sử dụng unnest
+
+### 25.5.1 List thành vector 
+
+```{r}
+df <- tribble(
+  ~x,
+  letters[1:5],
+  1:3,
+  runif(5)
+)
+  
+df %>% mutate(
+  type = map_chr(x, typeof),
+  length = map_int(x, length)
+)
+```
+
+```{r}
+df <- tribble(
+  ~x,
+  list(a = 1, b = 2),
+  list(a = 2, c = 4)
+)
+df %>% mutate(
+  a = map_dbl(x, "a"),
+  b = map_dbl(x, "b", .null = NA_real_)
+)
+```
+
+### 25.5.2 Unnesting
+
+```{r}
+tibble(x = 1:2, y = list(1:4,1)) %>% unnest(y)
+```
+
+```{r}
+df1 <- tribble(
+  ~x, ~y,           ~z,
+   1, c("a", "b"), 1:2,
+   2, "c",           3
+)
+df1
+```
+
+```{r}
+df1 %>% unnest(c(y, z))
+```
+
+## 25.6 Sử dụng broom để tidy data
+
+1.  broom::glance, để trả lại kết quả đánh giá quality và complexity của model
+2.  broom::tidy trả lại coefficient cho từng model
+3.  broom::augment(model, data), thêm residuals và influence statistics
